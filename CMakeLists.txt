@@ -6,15 +6,47 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Default to Release if no build type is specified
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the build type (Debug, Release, MemCheck)" FORCE)
 endif()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
-# Compiler flags for different build types
-set(CMAKE_C_FLAGS_DEBUG "-g -O0 -DDEBUG")
-set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
-set(CMAKE_C_FLAGS_MEMCHECK "-g -O0 -fsanitize=address -DDEBUG")
+# Detect platform
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(APPLE_BUILD TRUE)
+else()
+    set(APPLE_BUILD FALSE)
+endif()
+
+# General warning flags
+set(CMAKE_C_FLAGS "-Wall -Wextra -Wpedantic -Werror")
+
+# Debug flags
+set(CMAKE_C_FLAGS_DEBUG "-g -O0 -DDEBUG -fsanitize=undefined,address -fno-omit-frame-pointer -fstack-protector-strong")
+
+# Release flags
+set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG -march=native -flto")
+
+# MemCheck flags (without -fsanitize=leak on macOS)
+if(APPLE_BUILD)
+    set(CMAKE_C_FLAGS_MEMCHECK "-g -O1 -fsanitize=address,undefined -DDEBUG -fno-omit-frame-pointer")
+else()
+    set(CMAKE_C_FLAGS_MEMCHECK "-g -O1 -fsanitize=address,undefined,leak -DDEBUG -fno-omit-frame-pointer")
+endif()
+
+
+# Apply the correct flags based on build type
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "MemCheck")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_MEMCHECK}")
+endif()
+
+# Print the final compiler flags
+message(STATUS "C Compiler Flags: ${CMAKE_C_FLAGS}")
+
 
 # Add subdirectories for libraries and modules
 add_subdirectory(src/common)

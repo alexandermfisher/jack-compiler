@@ -7,15 +7,45 @@ A fully-fledged compiler would typically wrap everything into a single tool that
 
 TODO:
 - main:
-    - complete has_extension and change_extension
-      - check for most robust way strchc vs numeric length
-      - unit test 
-    - allows for output file argument, if not provided uses filename as in put with .hack extension
-    - check main block comment
+
   
 - assembler accepts two file pointers 
   - instantiate parser
-
 - parser header file and typedefs 
 - implement interface as stated in nand2tetris 
 
+- get rid of c test and make some custom scripts to build and run tests 
+
+
+
+
+
+
+
+# 1️⃣ Configure the project (choose preset: debug, release, memcheck)
+cmake --preset=debug
+cmake --preset=release
+cmake --preset=memcheck
+
+# 2️⃣ Build the project
+cmake --build --preset=debug
+cmake --build --preset=release
+cmake --build --preset=memcheck
+
+# 3️⃣ Run the executable
+./build/debug/your_executable_name
+./build/release/your_executable_name
+./build/memcheck/your_executable_name
+
+# 4️⃣ Run tests (if applicable)
+ctest --preset=debug
+ctest --preset=release
+ctest --preset=memcheck
+
+# 5️⃣ Clean the build
+cmake --build --preset=debug --target clean
+rm -rf build/  # Manual cleanup
+
+# 6️⃣ Debugging (gdb for Linux, lldb for macOS)
+gdb ./build/debug/your_executable_name   # Linux
+lldb ./build/debug/your_executable_name  # macOS

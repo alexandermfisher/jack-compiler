@@ -1,0 +1,79 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 19,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "debug",
+      "description": "Debug build with debug symbols",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "description": "Release build with optimizations",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "memcheck",
+      "description": "Debug build with Valgrind instrumentation",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/memcheck",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_MEMCHECK": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release"
+    },
+    {
+      "name": "memcheck",
+      "configurePreset": "memcheck"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "execution": {
+        "inheritBuildDir": true
+      }
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "execution": {
+        "inheritBuildDir": true
+      }
+    },
+    {
+      "name": "memcheck",
+      "configurePreset": "memcheck",
+      "execution": {
+        "inheritBuildDir": true
+      },
+      "environment": {
+        "CTEST_MEMORYCHECK_COMMAND": "valgrind",
+        "CTEST_MEMORYCHECK_COMMAND_OPTIONS": "--leak-check=full --error-exitcode=1"
+      }
+    }
+  ]
+}

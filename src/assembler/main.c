@@ -1,86 +1,121 @@
 /**
- * Main entry point for the Hack Assembler (`hackasm`).
+ * Created by Alexander Fisher on 03/03/2025.
  *
- * Usage:
- *   hackasm input.asm                // Reads input.asm, writes to input.hack
- *   hackasm input.asm -o output.hack // Reads input.asm, writes to output.hack
  *
- * Command-line arguments:
- *   - `input.asm` (required): Assembly source file.
- *   - `-o output.hack` (optional): Specify output file.
+ * @brief Main entry point for the Hack Assembler (`hackasm`).
  *
- * Behavior:
- *   - Input file **must** be provided (no stdin support).
- *   - If no `-o` option is given, output filename is **the same as input, but with `.hack` extension**.
- *   - Prints an error message for incorrect usage.
+ * @details
+ * This assembler translates Hack Assembly (`.asm`) files into Hack Machine Code (`.hack`).
+ * The command-line arguments follow a **GCC-style order**.
  *
- * Examples:
- *   hackasm add.asm       → Generates `add.hack`
- *   hackasm multiply.asm  → Generates `multiply.hack`
- *   hackasm loop.asm -o my_output.hack → Generates `my_output.hack`
+ * **Usage:**
+ *   hackasm source.asm                // Reads source.asm, writes to source.hack
+ *   hackasm -o target.hack source.asm // Writes to target.hack, reads source.asm
+ *
+ * **Command-line arguments (must be in this order):**
+ *   - `-o target` (optional): Specify the target filename.
+ *       - If `target` has no extension, `.hack` is automatically appended.
+ *       - If `target` includes an extension, it is preserved as-is.
+ *   - `source.asm` (required): The Hack assembly source file.
+ *
+ * **Behavior:**
+ *   - If `-o` is used, it **must** be the first argument.
+ *   - If `-o` is omitted, the output file defaults to `source.hack`.
+ *   - The source file **must** always be provided as the last argument.
+ *   - An error message is printed for incorrect usage.
+ *
+ * **Examples:**
+ *   hackasm add.asm                  → Generates `add.hack`
+ *   hackasm -o my_output.hack add.asm → Generates `my_output.hack`
+ *   hackasm -o custom.bin loop.asm   → Generates `custom.bin`
+ *   hackasm loop.asm -o target.hack  → Error (incorrect argument order)
  */
 
-#include "assembler.h"
-#include "file_utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h> // For PATH_MAX
+#include "file_utils.h"
 
 #define EXT_ASM ".asm"
-#define EXT_ASM_LEN 4
 #define EXT_HACK ".hack"
 
 
-int main(const int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <source_file.asm>\n", argv[0]);
+int main(int argc, char *argv[]) {
+    char source_filename[PATH_MAX];
+    char target_filename[PATH_MAX];
+
+    // Ensure correct number of arguments
+    if (argc != 2 && argc != 4) {
+        fprintf(stderr, "Usage: %s [-o <target>] <source.asm>\n", argv[0]);
         return EXIT_FAILURE;
     }
 
+    // Case 1: No `-o`, use default output filename
+    if (argc == 2) {
+        // Copy source filename and validate its extension
+        strncpy(source_filename, argv[1], PATH_MAX - 1);
+        source_filename[PATH_MAX - 1] = '\0';
+
+        if (!has_extension(source_filename, EXT_ASM)) {
+            fprintf(stderr, "Error: Source file must have a .asm extension.\n");
+            return EXIT_FAILURE;
+        }
+
+        // Default target filename (same as source but with .hack extension)
+        if (!change_extension(source_filename, ".hack", target_filename, PATH_MAX)) {
+            fprintf(stderr, "Error: Failed to set output filename.\n");
+            return EXIT_FAILURE;
+        } // Case 2: `-o <target>` specified
+    } else {
+        // Validate argument order (-o must be first)
 
 
 
-
-    const char *source_file = argv[1];
-    const size_t source_file_len = strlen(source_file);
-
-    // validate source file extension:
-    if (!has_extension(source_file,EXT_ASM)) {
-        fprintf(stderr, "Error: Input file must have a .asm extension\n");
-        return EXIT_FAILURE;
     }
-
-
-
-    // Create output filename (replace .asm with .hack)
-    char hack_file[256];
-    strncpy(hack_file, source_file, source_file_len - EXT_ASM_LEN);
-    hack_file[source_file_len - EXT_ASM_LEN] = '\0';
-    strcat(hack_file, EXT_HACK);
-
-    return run_assembler(source_file, hack_file);
 }
 
+
+
+
+
+
+
 // int main(int argc, char *argv[]) {
-//     if (argc < 2) {
-//         printf("Usage: %s <input.asm> [output.hack]\n", argv[0]);
-//         return 1;
-//     }
+//     // Case 2: `-o <target>` specified
+//     else {
+//         // Validate argument order (-o must be first)
+//         if (strcmp(argv[1], "-o") != 0) {
+//             fprintf(stderr, "Error: Invalid argument order. Expected: %s -o <target> <source.asm>\n", argv[0]);
+//             return EXIT_FAILURE;
+//         }
 //
-//     char output_filename[256];
+//         // Copy target filename from second argument
+//         strncpy(target_filename, argv[2], PATH_MAX - 1);
+//         target_filename[PATH_MAX - 1] = '\0';
 //
-//     if (argc == 3) {
-//         // Use user-provided filename
-//         snprintf(output_filename, sizeof(output_filename), "%s", argv[2]);
-//     } else {
-//         // Automatically generate output filename
-//         if (!change_extension(argv[1], ".hack", output_filename, sizeof(output_filename))) {
-//             printf("Error: Filename too long\n");
-//             return 1;
+//         // Copy source filename from third argument
+//         strncpy(source_filename, argv[3], PATH_MAX - 1);
+//         source_filename[PATH_MAX - 1] = '\0';
+//
+//         // Validate source file extension
+//         if (!has_extension(source_filename, ".asm")) {
+//             fprintf(stderr, "Error: Source file must have a .asm extension.\n");
+//             return EXIT_FAILURE;
+//         }
+//
+//         // If target filename has no extension, append .hack
+//         if (!strchr(target_filename, '.')) {
+//             if (!change_extension(target_filename, ".hack", target_filename, PATH_MAX)) {
+//                 fprintf(stderr, "Error: Failed to set output filename.\n");
+//                 return EXIT_FAILURE;
+//             }
 //         }
 //     }
 //
-//     printf("Assembling %s to %s\n", argv[1], output_filename);
+//     printf("Assembling: %s → %s\n", source_filename, target_filename);
 //
-//     return 0;
+//     // TODO: Open files and run assembler logic here
+//
+//     return EXIT_SUCCESS;
 // }

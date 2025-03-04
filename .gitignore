@@ -2,6 +2,7 @@
 cmake-build-debug/
 CMakeCache.txt
 CMakeFiles/
+build*/
 *.cmake
 *.ninja
 
