@@ -1,7 +1,7 @@
 //
 // Created by Alexander Fisher on 03/03/2025.
 //
-#include "../../src/common/file_utils.h"
+#include "file_utils.h"
 #include <assert.h>
 #include <stdio.h>
 
