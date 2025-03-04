@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <_stdlib.h>
+#include <stdlib.h>
 
 
 int run_assembler(const char *input_asm, const char *output_hack) {

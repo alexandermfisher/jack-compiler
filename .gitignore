@@ -1,0 +1,27 @@
+# CMake build files
+cmake-build-debug/
+CMakeCache.txt
+CMakeFiles/
+*.cmake
+*.ninja
+
+# Compiled binaries and libraries
+*.o
+*.a
+*.so
+*.out
+*.exe
+
+# IDE and editor files
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# macOS system files
+.DS_Store
+._*
+
+# Linux system files
+*~
