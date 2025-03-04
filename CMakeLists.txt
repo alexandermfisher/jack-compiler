@@ -11,5 +11,5 @@ add_subdirectory(src/assembler) # Build assembler
 
 ## Add tests
 enable_testing()
-add_subdirectory(tests)
-
+add_subdirectory(tests/assembler)
+add_subdirectory(tests/common)
