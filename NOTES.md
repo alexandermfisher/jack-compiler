@@ -7,6 +7,12 @@ A fully-fledged compiler would typically wrap everything into a single tool that
 
 TODO:
 - main:
+  factor gpt code into parser method
+  add verbose flag 
+
+  validate source extension and readable
+  handle target 
+
 
   
 - assembler accepts two file pointers 

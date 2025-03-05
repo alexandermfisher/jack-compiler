@@ -32,90 +32,113 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
+
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h> // For PATH_MAX
-#include "file_utils.h"
+#include <unistd.h>
+#include <limits.h>
 
 #define EXT_ASM ".asm"
 #define EXT_HACK ".hack"
 
+int is_valid_filename(const char *filename) {
+    return filename && strlen(filename) > 0 && strlen(filename) < PATH_MAX;
+}
 
-int main(int argc, char *argv[]) {
-    char source_filename[PATH_MAX];
-    char target_filename[PATH_MAX];
+bool parse_arguments(int argc, char *argv[], char **source_file, char **target_file);
 
-    // Ensure correct number of arguments
-    if (argc != 2 && argc != 4) {
-        fprintf(stderr, "Usage: %s [-o <target>] <source.asm>\n", argv[0]);
+int main(const int argc, char *argv[]) {
+    char *source_file = NULL;
+    char *target_file = NULL;
+
+    // parse_arguments(argc, argv, &source_file, &target_file);
+    // printf("Source: %s\nTarget: %s\n", source_file, target_file);
+
+    // Parse arguments
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-o") == 0) {
+            if (i + 1 < argc) {
+                target_file = argv[++i];
+            } else {
+                fprintf(stderr, "Error: Missing output filename after '-o'.\n");
+                return EXIT_FAILURE;
+            }
+        } else if (!source_file) {
+            source_file = argv[i];
+        } else {
+            fprintf(stderr, "Error: Unexpected argument '%s'.\n", argv[i]);
+            return EXIT_FAILURE;
+        }
+    }
+
+    printf("source: %s\ntarget: %s\n", source_file,  target_file);
+    // Check if source file is provided
+    if (!source_file) {
+        fprintf(stderr, "Error: No source file provided.\n");
+        fprintf(stderr, "Usage: %s [-o output.hack] source.asm\n", argv[0]);
         return EXIT_FAILURE;
     }
 
-    // Case 1: No `-o`, use default output filename
-    if (argc == 2) {
-        // Copy source filename and validate its extension
-        strncpy(source_filename, argv[1], PATH_MAX - 1);
-        source_filename[PATH_MAX - 1] = '\0';
+    // Validate source file extension
+    if (strstr(source_file, ".asm") == NULL) {
+        fprintf(stderr, "Error: Source file must have a .asm extension.\n");
+        return EXIT_FAILURE;
+    }
 
-        if (!has_extension(source_filename, EXT_ASM)) {
-            fprintf(stderr, "Error: Source file must have a .asm extension.\n");
+    // Check if source file exists
+    if (access(source_file, F_OK) != 0) {
+        fprintf(stderr, "Error: Source file '%s' does not exist.\n", source_file);
+        return EXIT_FAILURE;
+    }
+
+    // Validate output filename (if provided)
+    if (target_file) {
+        if (!is_valid_filename(target_file)) {
+            fprintf(stderr, "Error: Invalid output filename.\n");
             return EXIT_FAILURE;
         }
-
-        // Default target filename (same as source but with .hack extension)
-        if (!change_extension(source_filename, ".hack", target_filename, PATH_MAX)) {
-            fprintf(stderr, "Error: Failed to set output filename.\n");
-            return EXIT_FAILURE;
-        } // Case 2: `-o <target>` specified
     } else {
-        // Validate argument order (-o must be first)
-
-
-
+        // Generate default output filename (source.asm -> source.hack)
+        static char default_output[PATH_MAX];
+        strncpy(default_output, source_file, PATH_MAX);
+        char *dot = strrchr(default_output, '.');
+        if (dot) *dot = '\0';  // Remove existing extension
+        strcat(default_output, ".hack");
+        target_file = default_output;
     }
+
+    // Prevent overwriting source file
+    if (strcmp(source_file, target_file) == 0) {
+        fprintf(stderr, "Error: Output file cannot be the same as source file.\n");
+        return EXIT_FAILURE;
+    }
+
+    printf("Assembling: %s → %s\n", source_file, target_file);
+
+    // TODO: Run assembler logic here...
+
+    return EXIT_SUCCESS;
 }
 
 
+bool parse_arguments(const int argc, char *argv[], char **source_file, char **target_file) {
 
+    if (argc != 2 && argc != 4) {
+        return false;
+    }
 
+    if (argc == 2) {
+        *source_file = argv[1];
+        return true;
+    }
 
+    if (strcmp(argv[1], "-o") != 0) {
+        return false;
+    }
 
+    *target_file = argv[2];
+    *source_file = argv[3];
 
-// int main(int argc, char *argv[]) {
-//     // Case 2: `-o <target>` specified
-//     else {
-//         // Validate argument order (-o must be first)
-//         if (strcmp(argv[1], "-o") != 0) {
-//             fprintf(stderr, "Error: Invalid argument order. Expected: %s -o <target> <source.asm>\n", argv[0]);
-//             return EXIT_FAILURE;
-//         }
-//
-//         // Copy target filename from second argument
-//         strncpy(target_filename, argv[2], PATH_MAX - 1);
-//         target_filename[PATH_MAX - 1] = '\0';
-//
-//         // Copy source filename from third argument
-//         strncpy(source_filename, argv[3], PATH_MAX - 1);
-//         source_filename[PATH_MAX - 1] = '\0';
-//
-//         // Validate source file extension
-//         if (!has_extension(source_filename, ".asm")) {
-//             fprintf(stderr, "Error: Source file must have a .asm extension.\n");
-//             return EXIT_FAILURE;
-//         }
-//
-//         // If target filename has no extension, append .hack
-//         if (!strchr(target_filename, '.')) {
-//             if (!change_extension(target_filename, ".hack", target_filename, PATH_MAX)) {
-//                 fprintf(stderr, "Error: Failed to set output filename.\n");
-//                 return EXIT_FAILURE;
-//             }
-//         }
-//     }
-//
-//     printf("Assembling: %s → %s\n", source_filename, target_filename);
-//
-//     // TODO: Open files and run assembler logic here
-//
-//     return EXIT_SUCCESS;
-// }
+    return true;
+}
