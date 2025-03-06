@@ -19,22 +19,28 @@ bool has_extension(const char *filename, const char *expected_extension);
 
 
 /**
- * @brief Changes the file extension of a given filename.
+ * @brief Changes the file extension of a given filepath.
  *
- * This function takes a filename and replaces its extension with a new one.
- * If the filename has an existing extension (i.e., contains a '.'), the new extension replaces it.
- * If there is no extension, the new extension is simply appended to the filename.
+ * This function modifies the input `filepath` in place, replacing its current
+ * extension with the specified `extension`. If the file has no extension, the
+ * new extension is appended. The function ensures the resulting filename does
+ * not exceed `max_len` characters.
  *
- * @param filename      The original filename (must be a null-terminated string).
- * @param new_extension The new extension to append or replace the old one (should start with '.').
- * @param output        The buffer to store the new filename.
- * @param output_size   The size of the output buffer.
- * @return true on success, false if any argument is NULL or the output buffer is too small.
+ * @param filepath The file path to modify. Must be a valid, non-null, mutable string.
+ * @param max_len The maximum allowed length for the modified filepath, including the null terminator.
+ * @param extension The new extension to apply, including the leading dot (e.g., ".txt").
+ * @return true if the extension was successfully changed or appended, false on failure.
  *
- * @note The function does not check if new_extension starts with a '.'.
- *       The caller should ensure the correct format.
+ * @note The function rejects invalid filenames such as empty strings, ".", and "..".
+ * @note If `filepath` is too long after modification, the function fails and returns false.
+ * @note The `filepath` buffer must be large enough to accommodate the modified string.
  */
-bool change_extension(const char *filename, const char *new_extension, char *output, size_t output_size);
+bool change_file_extension(char *filepath, const size_t max_len,  const char *extension);
+
+
+
+bool is_valid_filename(const char *filename);
+
 
 #endif // FILE_UTILS_H
 

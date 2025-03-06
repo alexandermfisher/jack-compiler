@@ -66,6 +66,6 @@ fi
 echo "==> No test specified, building and running all assembler tests..."
 ninja -C build/"$BUILD_TYPE" || { echo "Build failed!"; exit 1; }
 
-for TEST in assembler parser code symbol_table; do
+for TEST in assembler parser code symbol_table utils; do
     run_test "$BUILD_DIR/test_$TEST"
 done

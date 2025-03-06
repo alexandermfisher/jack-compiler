@@ -31,69 +31,66 @@
  *   hackasm loop.asm -o target.hack  → Error (incorrect argument order)
  */
 
+#include <file_utils.h>
 #include <stdio.h>
-
-
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <limits.h>
-
 #include "utils.h"
 
 #define EXT_ASM ".asm"
 #define EXT_HACK ".hack"
 
-int is_valid_filename(const char *filename) {
-    return filename && strlen(filename) > 0 && strlen(filename) < PATH_MAX;
-}
-
 
 int main(const int argc, char *argv[]) {
-
     // Parse arguments
     char *source_file = NULL;
     char *target_file = NULL;
     parse_arguments(argc, argv, &source_file, &target_file);
 
-    // printf("Source: %s\nTarget: %s\n", source_file, target_file);
-
-    // Validate source file extension
-    if (strstr(source_file, ".asm") == NULL) {
-        fprintf(stderr, "Error: Source file must have a .asm extension.\n");
+    if (!is_valid_filename(source_file)) {
+        fprintf(stderr, "Error: Invalid source filename.\n");
         return EXIT_FAILURE;
     }
-    //
-    // // Check if source file exists
-    // if (access(source_file, F_OK) != 0) {
-    //     fprintf(stderr, "Error: Source file '%s' does not exist.\n", source_file);
-    //     return EXIT_FAILURE;
-    // }
-    //
-    // // Validate output filename (if provided)
-    // if (target_file) {
-    //     if (!is_valid_filename(target_file)) {
-    //         fprintf(stderr, "Error: Invalid output filename.\n");
-    //         return EXIT_FAILURE;
-    //     }
-    // } else {
-    //     // Generate default output filename (source.asm -> source.hack)
-    //     static char default_output[PATH_MAX];
-    //     strncpy(default_output, source_file, PATH_MAX);
-    //     char *dot = strrchr(default_output, '.');
-    //     if (dot) *dot = '\0';  // Remove existing extension
-    //     strcat(default_output, ".hack");
-    //     target_file = default_output;
-    // }
-    //
-    // // Prevent overwriting source file
-    // if (strcmp(source_file, target_file) == 0) {
-    //     fprintf(stderr, "Error: Output file cannot be the same as source file.\n");
-    //     return EXIT_FAILURE;
-    // }
-    //
-    // printf("Assembling: %s → %s\n", source_file, target_file);
 
+    // Validate source file extension
+    if (has_extension(source_file, EXT_ASM)) {
+        fprintf(stderr, "Error: Source file must have '.asm' extension.\n");
+        return EXIT_FAILURE;
+    }
+
+    // Check if source file exists
+    if (access(source_file, F_OK) != 0) {
+        fprintf(stderr, "Error: Source file '%s' does not exist.\n", source_file);
+        return EXIT_FAILURE;
+    }
+
+    // Validate output filename (if provided)
+    if (target_file) {
+        if (!is_valid_filename(target_file)) {
+            fprintf(stderr, "Error: Invalid output filename.\n");
+            return EXIT_FAILURE;
+        }
+    } else {
+        // Generate default target filename (name.asm -> name.hack)
+        static char default_target[PATH_MAX];
+        const char *slash = strrchr(source_file, '/');
+        const char *filename = (slash) ? slash + 1 : source_file;
+        strncpy(default_target, filename, PATH_MAX);
+        if (!change_file_extension(default_target, PATH_MAX, EXT_HACK)) {
+            fprintf(stderr, "Error: Unable to generate target filename from.\n");
+            return EXIT_FAILURE;
+        }
+        target_file = default_target;
+    }
+
+    // Prevent overwriting source file
+    if (strcmp(source_file, target_file) == 0) {
+        fprintf(stderr, "Error: Output file cannot be the same as source file.\n");
+        return EXIT_FAILURE;
+    }
+
+    printf("Assembling: %s → %s\n", source_file, target_file);
 
     return EXIT_SUCCESS;
 }
