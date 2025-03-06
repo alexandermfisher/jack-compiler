@@ -1,35 +1,21 @@
-# Create test executable for unit tests
-add_executable(
-        test_assembler
-        test_main.c
-        test_assembler.c
-        test_parser.c
-        test_code.c
-        test_symbol_table.c
-)
+# Create individual test executables
 
-# Link the assembler library
+add_executable(test_assembler test_assembler.c)
 target_link_libraries(test_assembler PRIVATE assembler)
+target_include_directories(test_assembler PRIVATE ${CMAKE_SOURCE_DIR}/src/assembler)
 
-# Register unit tests
-add_test(NAME UnitTests_Assembler COMMAND test_assembler)
-set_tests_properties(UnitTests_Assembler PROPERTIES LABELS "assembler")
+add_executable(test_parser test_parser.c)
+target_link_libraries(test_parser PRIVATE assembler)
+target_include_directories(test_parser PRIVATE ${CMAKE_SOURCE_DIR}/src/assembler)
 
-# Define the path to the integration test script
-set(INTEGRATION_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/integration/test_assembler.sh")
+add_executable(test_code test_code.c)
+target_link_libraries(test_code PRIVATE assembler)
+target_include_directories(test_code PRIVATE ${CMAKE_SOURCE_DIR}/src/assembler)
 
-# Ensure the script is executable
-add_custom_target(
-        MakeTestScriptExecutable
-        COMMAND chmod +x ${INTEGRATION_SCRIPT}
-)
+add_executable(test_symbol_table test_symbol_table.c)
+target_link_libraries(test_symbol_table PRIVATE assembler)
+target_include_directories(test_symbol_table PRIVATE ${CMAKE_SOURCE_DIR}/src/assembler)
 
-## Integration tests
-#add_test(NAME AssemblerTest_All COMMAND ${INTEGRATION_SCRIPT})
-#set_tests_properties(AssemblerTest_All PROPERTIES LABELS "assembler")
-#
-#add_test(NAME AssemblerTest_NoSymbols COMMAND ${INTEGRATION_SCRIPT} --no-symbols)
-#set_tests_properties(AssemblerTest_NoSymbols PROPERTIES LABELS "assembler")
-#
-#add_test(NAME AssemblerTest_Valgrind COMMAND valgrind --leak-check=full --error-exitcode=1 ${INTEGRATION_SCRIPT})
-#set_tests_properties(AssemblerTest_Valgrind PROPERTIES LABELS "assembler" WILL_FAIL FALSE)
+add_executable(test_utils test_utils.c)
+target_link_libraries(test_utils PRIVATE assembler)
+target_include_directories(test_utils PRIVATE ${CMAKE_SOURCE_DIR}/src/assembler)

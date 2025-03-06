@@ -6,12 +6,32 @@
 #include <stdio.h>
 #include <string.h>
 
+void test_has_extension(void);
+void test_change_extension(void);
+
+
+int main(void) {
+    printf("Starting test_file_utils...\n");
+    test_has_extension();
+    test_change_extension();
+    printf("All tests passed successfully.\n");
+    printf("Test completed.\n");
+    return 0;
+}
+
 void test_has_extension(void) {
     assert(has_extension("test.asm", ".asm") == true);
     assert(has_extension("test.hack", ".hack") == true);
     assert(has_extension("test", ".asm") == false);
     assert(has_extension(NULL, ".asm") == false);
     assert(has_extension("test.asm", NULL) == false);
+    assert(has_extension("file/path/source.asmnot", ".asm") == false);
+    assert(has_extension("file/path/source.asm.text", ".asm") == false);
+    assert(has_extension("file/path/source.asm.asm", ".asm") == false);
+    assert(has_extension("file/../source.asm.asm", ".asm.asm") == true);
+    assert(has_extension("file/path/source.text.asm", ".asm") == false);
+    assert(has_extension("file/../source.text.asm", ".asm") == false);
+    assert(has_extension("file/../source.asm", ".asm") == true);
 }
 
 void test_change_extension(void) {
@@ -36,11 +56,4 @@ void test_change_extension(void) {
     assert(change_extension(NULL, ".md", output, sizeof(output)) == false);
     assert(change_extension("file.txt", NULL, output, sizeof(output)) == false);
     assert(change_extension("file.txt", ".md", NULL, sizeof(output)) == false);
-}
-
-int main(void) {
-    test_has_extension();
-    test_change_extension();
-    printf("All tests passed.\n");
-    return 0;
 }

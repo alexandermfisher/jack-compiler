@@ -34,46 +34,5 @@
         "ENABLE_MEMCHECK": "ON"
       }
     }
-  ],
-  "buildPresets": [
-    {
-      "name": "debug",
-      "configurePreset": "debug"
-    },
-    {
-      "name": "release",
-      "configurePreset": "release"
-    },
-    {
-      "name": "memcheck",
-      "configurePreset": "memcheck"
-    }
-  ],
-  "testPresets": [
-    {
-      "name": "debug",
-      "configurePreset": "debug",
-      "execution": {
-        "inheritBuildDir": true
-      }
-    },
-    {
-      "name": "release",
-      "configurePreset": "release",
-      "execution": {
-        "inheritBuildDir": true
-      }
-    },
-    {
-      "name": "memcheck",
-      "configurePreset": "memcheck",
-      "execution": {
-        "inheritBuildDir": true
-      },
-      "environment": {
-        "CTEST_MEMORYCHECK_COMMAND": "valgrind",
-        "CTEST_MEMORYCHECK_COMMAND_OPTIONS": "--leak-check=full --error-exitcode=1"
-      }
-    }
   ]
 }

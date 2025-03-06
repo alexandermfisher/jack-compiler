@@ -6,9 +6,8 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Default to Release if no build type is specified
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the build type (Debug, Release, MemCheck)" FORCE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the build type (Debug, Release)" FORCE)
 endif()
-
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 # Detect platform
@@ -27,32 +26,30 @@ set(CMAKE_C_FLAGS_DEBUG "-g -O0 -DDEBUG -fsanitize=undefined,address -fno-omit-f
 # Release flags
 set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG -march=native -flto")
 
-# MemCheck flags (without -fsanitize=leak on macOS)
-if(APPLE_BUILD)
-    set(CMAKE_C_FLAGS_MEMCHECK "-g -O1 -fsanitize=address,undefined -DDEBUG -fno-omit-frame-pointer")
-else()
-    set(CMAKE_C_FLAGS_MEMCHECK "-g -O1 -fsanitize=address,undefined,leak -DDEBUG -fno-omit-frame-pointer")
+# MemCheck option (enabled via -DENABLE_MEMCHECK=ON)
+option(ENABLE_MEMCHECK "Enable memory checking tools" OFF)
+if(ENABLE_MEMCHECK)
+    message(STATUS "Enabling MemCheck flags")
+    if(APPLE_BUILD)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,undefined")
+    else()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,undefined,leak")
+    endif()
 endif()
-
 
 # Apply the correct flags based on build type
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE}")
-elseif(CMAKE_BUILD_TYPE STREQUAL "MemCheck")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_MEMCHECK}")
 endif()
 
 # Print the final compiler flags
 message(STATUS "C Compiler Flags: ${CMAKE_C_FLAGS}")
 
-
 # Add subdirectories for libraries and modules
 add_subdirectory(src/common)
 add_subdirectory(src/assembler)
-
-# Add tests
-enable_testing()
 add_subdirectory(tests/assembler)
 add_subdirectory(tests/common)
+
