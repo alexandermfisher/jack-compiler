@@ -46,13 +46,8 @@ int main(const int argc, char *argv[]) {
     char *target_file = NULL;
     parse_arguments(argc, argv, &source_file, &target_file);
 
-    if (!is_valid_filename(source_file)) {
-        fprintf(stderr, "Error: Invalid source filename.\n");
-        return EXIT_FAILURE;
-    }
-
     // Validate source file extension
-    if (has_extension(source_file, EXT_ASM)) {
+    if (!has_extension(source_file, EXT_ASM)) {
         fprintf(stderr, "Error: Source file must have '.asm' extension.\n");
         return EXIT_FAILURE;
     }
@@ -65,7 +60,7 @@ int main(const int argc, char *argv[]) {
 
     // Validate output filename (if provided)
     if (target_file) {
-        if (!is_valid_filename(target_file)) {
+        if (!is_valid_filepath(target_file)) {
             fprintf(stderr, "Error: Invalid output filename.\n");
             return EXIT_FAILURE;
         }

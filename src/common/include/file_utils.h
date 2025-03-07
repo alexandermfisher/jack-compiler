@@ -1,21 +1,21 @@
 //
 // Created by Alexander Fisher on 03/03/2025.
 //
-
 #ifndef FILE_UTILS_H
 #define FILE_UTILS_H
 
+#include <stdio.h>
 #include <stdbool.h>
-#include <stddef.h>
+
 
 /**
  * @brief Checks if a filename has a specific extension.
  *
- * @param filename The name of the file.
+ * @param filepath The name of the file.
  * @param expected_extension The expected file extension (e.g., ".asm").
  * @return true if the filename has the expected extension, false otherwise.
  */
-bool has_extension(const char *filename, const char *expected_extension);
+bool has_extension(const char *filepath, const char *expected_extension);
 
 
 /**
@@ -35,11 +35,21 @@ bool has_extension(const char *filename, const char *expected_extension);
  * @note If `filepath` is too long after modification, the function fails and returns false.
  * @note The `filepath` buffer must be large enough to accommodate the modified string.
  */
-bool change_file_extension(char *filepath, const size_t max_len,  const char *extension);
+bool change_file_extension(char *filepath, size_t max_len,  const char *extension);
 
 
-
-bool is_valid_filename(const char *filename);
+/**
+ * @brief Checks if a given path represents a valid file, not a directory.
+ *
+ * This function ensures that the input is a valid file path:
+ *   - Allows absolute ("/file.txt") and relative ("file.txt") paths.
+ *   - Rejects the root directory ("/") and standalone "." or "..".
+ *   - Ensures the path does not end with '/' (indicating a directory).
+ *
+ * @param filepath The file path to validate.
+ * @return true if it is a valid file path, false otherwise.
+ */
+bool is_valid_filepath(const char *filepath);
 
 
 #endif // FILE_UTILS_H

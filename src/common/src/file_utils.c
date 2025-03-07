@@ -3,10 +3,7 @@
 //
 #include "file_utils.h"
 #include <string.h>
-#include <stdbool.h>
-#include <stdio.h>
 #include <limits.h>
-
 
 bool has_extension(const char *filepath, const char *expected_extension) {
     if (!filepath || !expected_extension) { return false; }
@@ -25,7 +22,6 @@ bool has_extension(const char *filepath, const char *expected_extension) {
 
     return strcmp(ext, expected_extension) == 0;
 }
-
 
 bool change_file_extension(char *filepath, const size_t max_len, const char *extension) {
     if (!filepath || !extension) return false;
@@ -63,7 +59,23 @@ bool change_file_extension(char *filepath, const size_t max_len, const char *ext
     return true;
 }
 
-bool is_valid_filename(const char *filename) {
-    return filename && strlen(filename) > 0 && strlen(filename) < PATH_MAX;
+bool is_valid_filepath(const char *filepath) {
+    if (!filepath || strlen(filepath) == 0 || strlen(filepath) >= PATH_MAX) {
+        return false;
+    }
+
+    const size_t len = strlen(filepath);
+
+    // Reject root "/" and paths ending in '/'
+    if (strcmp(filepath, "/") == 0 || filepath[len - 1] == '/') {
+        return false;
+    }
+
+    // Extract last component (the filename)
+    const char *filename = strrchr(filepath, '/');
+    filename = (filename) ? filename + 1 : filepath;  // Move past last '/'
+
+    // Ensure filename is not empty, "." or ".."
+    return (*filename != '\0' && strcmp(filename, ".") != 0 && strcmp(filename, "..") != 0);
 }
 

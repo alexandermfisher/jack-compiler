@@ -5,15 +5,18 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 
 void test_has_extension(void);
 void test_change_file_extension(void);
+void test_is_valid_filepath(void);
 
 
 int main(void) {
     printf("Starting test_file_utils...\n");
     test_has_extension();
     test_change_file_extension();
+    test_is_valid_filepath();
     printf("All tests passed successfully.\n");
     printf("Test completed.\n");
     return 0;
@@ -153,4 +156,33 @@ void test_change_file_extension(void) {
     strcpy(filepath, ".env");
     assert(change_file_extension(filepath, sizeof(filepath), ".bak") == true);
     assert(strcmp(filepath, ".env.bak") == 0);
+}
+
+void test_is_valid_filepath(void) {
+    // Valid file paths
+    assert(is_valid_filepath("valid_file.txt") == true);
+    assert(is_valid_filepath("another_valid-file") == true);
+    assert(is_valid_filepath("file_with_numbers_123") == true);
+    assert(is_valid_filepath("UPPERCASE") == true);
+    assert(is_valid_filepath("mixED.case") == true);
+    assert(is_valid_filepath("spaces are okay") == true);
+    assert(is_valid_filepath("subdir/file.txt") == true);
+    assert(is_valid_filepath("file/name") == true);
+    assert(is_valid_filepath("./relative/path/to/file") == true);
+    assert(is_valid_filepath("../parent_dir/file") == true);
+    assert(is_valid_filepath("/absolute/path/to/file.txt") == true);
+
+    // Invalid cases
+    assert(is_valid_filepath("") == false);            // Empty string
+    assert(is_valid_filepath(".") == false);           // Single dot
+    assert(is_valid_filepath("..") == false);          // Double dots
+    assert(is_valid_filepath("/") == false);           // Root directory
+    assert(is_valid_filepath("/home/user/") == false); // Ends with '/', indicating a directory
+    assert(is_valid_filepath("trailing_slash/") == false);
+
+    // Overly long filename (should be false if it exceeds PATH_MAX)
+    char long_filename[PATH_MAX + 2];
+    memset(long_filename, 'a', PATH_MAX + 1);
+    long_filename[PATH_MAX + 1] = '\0';
+    assert(is_valid_filepath(long_filename) == false);
 }

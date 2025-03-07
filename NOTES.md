@@ -7,10 +7,9 @@ A fully-fledged compiler would typically wrap everything into a single tool that
 
 TODO:
 - main:
-  finish validate filename inline with linux and sensible add brief and unit test
   integration test on command line 
 
-
+common should compile if mistakes in main 
   
 - assembler accepts two file pointers 
   - instantiate parser
