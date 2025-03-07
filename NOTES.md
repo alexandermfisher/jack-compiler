@@ -7,10 +7,10 @@ A fully-fledged compiler would typically wrap everything into a single tool that
 
 TODO:
 - main:
-  integration test on command line 
-
-common should compile if mistakes in main 
+common should compile if mistakes in main (make a syntax error in main and try)
+open files pointers and pass to assembler 
   
+
 - assembler accepts two file pointers 
   - instantiate parser
 - parser header file and typedefs 
