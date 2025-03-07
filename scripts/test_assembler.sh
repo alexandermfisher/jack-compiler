@@ -3,6 +3,9 @@
 # Default build type
 BUILD_TYPE="debug"
 
+# List of test names to run (easily editable)
+TEST_NAMES=("assembler" "parser" "code" "symbol_table" "utils")  # Add test names here
+
 # Parse options
 while getopts "b:" opt; do
   case ${opt} in
@@ -12,8 +15,8 @@ while getopts "b:" opt; do
 done
 shift $((OPTIND - 1))  # Remove processed options
 
-# Set build directory
-BUILD_DIR="build/$BUILD_TYPE/tests/assembler"
+# Set build directory (update to reflect correct path)
+BUILD_DIR="build/$BUILD_TYPE/src/assembler/tests"
 
 # Ensure build directory exists
 if [ ! -d "build/$BUILD_TYPE" ]; then
@@ -52,12 +55,11 @@ run_test() {
     fi
 }
 
-
 # If a test name is provided, only build and run that test
 if [ $# -eq 1 ]; then
     TEST_EXEC="$BUILD_DIR/test_$1"
     echo "==> Building and running test: $1 ($BUILD_TYPE mode)"
-    ninja -C build/"$BUILD_TYPE" "tests/assembler/test_$1" || { echo "Build failed!"; exit 1; }
+    ninja -C build/"$BUILD_TYPE" "src/assembler/tests/test_$1" || { echo "Build failed!"; exit 1; }
     run_test "$TEST_EXEC"
     exit 0
 fi
@@ -66,6 +68,7 @@ fi
 echo "==> No test specified, building and running all assembler tests..."
 ninja -C build/"$BUILD_TYPE" || { echo "Build failed!"; exit 1; }
 
-for TEST in assembler parser code symbol_table utils; do
+# Run all tests in the TEST_NAMES list
+for TEST in "${TEST_NAMES[@]}"; do
     run_test "$BUILD_DIR/test_$TEST"
 done

@@ -5,8 +5,8 @@
  * @brief Main entry point for the Hack Assembler (`hackasm`).
  *
  * @details
- * This assembler translates Hack Assembly (`.asm`) files into Hack Machine Code (`.hack`).
- * The command-line arguments follow a **GCC-style order**.
+ * The assembler translates Hack Assembly (`.asm`) files into Hack Machine Code (`.hack`).
+ * It processes command-line arguments to specify the source file and an optional target file.
  *
  * **Usage:**
  *   hackasm source.asm                // Reads source.asm, writes to source.hack
@@ -14,23 +14,21 @@
  *
  * **Command-line arguments:**
  *   - `source.asm` (required): The Hack assembly source file.
- *   - `-o target` (optional): Specify the target filename.
- *       - If `target` has no extension, `.hack` is automatically appended.
- *       - If `target` includes an extension, it is preserved as-is.
+ *   - `-o target` (optional): Specify the target filename. If omitted, `.hack` is added to the source filename.
+ *
+ * The order of arguments doesn't matter for the source and target filenames as long as:
+ *   - The `-o` option, if provided, is followed by the target filename.
+ *   - The source file must be provided at the end, unless the `-o` option is used first.
  *
  * **Behavior:**
- *   - If `-o` is used, it **must** be the first argument.
- *   - If `-o` is omitted, the output file defaults to `source.hack`.
- *   - The source file **must** always be provided as the last argument.
- *   - An error message is printed for incorrect usage.
+ *   - The program generates the output file from the source file, ensuring the proper extensions.
+ *   - Errors are reported for invalid filenames, missing source files, and incorrect usage.
  *
  * **Examples:**
  *   hackasm add.asm                   → Generates `add.hack`
  *   hackasm -o my_output.hack add.asm → Generates `my_output.hack`
- *   hackasm -o custom.bin loop.asm   → Generates `custom.bin`
- *   hackasm loop.asm -o target.hack  → Error (incorrect argument order)
+ *   hackasm loop.asm -o custom.bin    → Generates `custom.bin`
  */
-
 #include <file_utils.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -12,8 +12,8 @@ while getopts "b:" opt; do
 done
 shift $((OPTIND - 1))  # Remove processed options
 
-# Set build directory
-BUILD_DIR="build/$BUILD_TYPE/tests/common"
+# List of common tests to run (easily editable)
+COMMON_TESTS=("file_utils")  # Add common test names here
 
 # Ensure build directory exists
 if [ ! -d "build/$BUILD_TYPE" ]; then
@@ -52,12 +52,11 @@ run_test() {
     fi
 }
 
-
 # If a test name is provided, only build and run that test
 if [ $# -eq 1 ]; then
-    TEST_EXEC="$BUILD_DIR/test_$1"
+    TEST_EXEC="build/$BUILD_TYPE/src/common/tests/test_$1"
     echo "==> Building and running test: $1 ($BUILD_TYPE mode)"
-    ninja -C build/"$BUILD_TYPE" "tests/common/test_$1" || { echo "Build failed!"; exit 1; }
+    ninja -C build/"$BUILD_TYPE" "src/common/tests/test_$1" || { echo "Build failed!"; exit 1; }
     run_test "$TEST_EXEC"
     exit 0
 fi
@@ -66,6 +65,7 @@ fi
 echo "==> No test specified, building and running all common tests..."
 ninja -C build/$BUILD_TYPE || { echo "Build failed!"; exit 1; }
 
-for TEST in file_utils; do
-    run_test "$BUILD_DIR/test_$TEST"
+# Run common tests
+for TEST in "${COMMON_TESTS[@]}"; do
+    run_test "build/$BUILD_TYPE/src/common/tests/test_$TEST"
 done

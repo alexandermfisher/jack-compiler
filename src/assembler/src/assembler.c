@@ -19,11 +19,3 @@ int run_assembler(const char *input_asm, const char *output_hack) {
 
     return 0;
 }
-
-bool has_extension(const char *filename, const char *expected_extension) {
-    if (!filename || !expected_extension) {
-        return false;
-    }
-    const char *ext = strrchr(filename, '.');
-    return ext && strcmp(ext, expected_extension) == 0;
-}

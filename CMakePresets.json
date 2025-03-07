@@ -2,13 +2,13 @@
   "version": 3,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 19,
+    "minor": 20,
     "patch": 0
   },
   "configurePresets": [
     {
       "name": "debug",
-      "description": "Debug build with debug symbols",
+      "description": "Debug build for all modules",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/debug",
       "cacheVariables": {
@@ -16,22 +16,22 @@
       }
     },
     {
-      "name": "release",
-      "description": "Release build with optimizations",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/release",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
       "name": "memcheck",
-      "description": "Debug build with Valgrind instrumentation",
+      "description": "Debug build with MemCheck enabled for all modules",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/memcheck",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "ENABLE_MEMCHECK": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "description": "Release build for all modules",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
   ]

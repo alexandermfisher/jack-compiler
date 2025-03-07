@@ -1,2 +1,0 @@
-add_executable(test_file_utils test_file_utils.c)
-target_link_libraries(test_file_utils PRIVATE common)

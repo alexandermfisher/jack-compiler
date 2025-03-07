@@ -7,7 +7,6 @@ A fully-fledged compiler would typically wrap everything into a single tool that
 
 TODO:
 - main:
-  rewrite function brief for main and
   finish validate filename inline with linux and sensible add brief and unit test
   integration test on command line 
 
