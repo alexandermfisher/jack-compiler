@@ -10,6 +10,7 @@ add_library(assembler STATIC
         src/assembler.c
         src/code-generator.c
         src/parser.c
+        src/token.c
         src/symbol_table.c
         src/utils.c
 )
