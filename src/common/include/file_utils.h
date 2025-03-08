@@ -52,5 +52,9 @@ bool change_file_extension(char *filepath, size_t max_len,  const char *extensio
 bool is_valid_filepath(const char *filepath);
 
 
+
+
+
+
 #endif // FILE_UTILS_H
 

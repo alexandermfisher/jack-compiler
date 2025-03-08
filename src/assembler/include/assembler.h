@@ -6,10 +6,11 @@
 /**
  * @brief Assembles a given Hack assembly file into machine code.
  *
- * @param input_asm Path to the input assembly file (.asm).
- * @param output_hack Path to the output machine code file (.hack).
+ * @param source_asm Pointer to the source assembly file (.asm), opened for reading.
+ * @param target_hack Pointer to the target machine code file (.hack), opened for writing.
  * @return int 0 on success, non-zero on failure.
  */
-int run_assembler(const char *input_asm, const char *output_hack);
+int run_assembler(FILE *source_asm, FILE *target_hack);
+
 
 #endif // ASSEMBLER_H

@@ -29,6 +29,7 @@
  *   hackasm -o my_output.hack add.asm → Generates `my_output.hack`
  *   hackasm loop.asm -o custom.bin    → Generates `custom.bin`
  */
+#include <assembler.h>
 #include <file_utils.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,7 +84,29 @@ int main(const int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    printf("Assembling: %s → %s\n", source_file, target_file);
+    // Open source file for reading
+    FILE *source_file_ptr = fopen(source_file, "r");
+    if (!source_file_ptr) {
+        perror("Error opening source file");
+        return EXIT_FAILURE;
+    }
+
+    // Open target file for writing (creates a new file if it doesn't exist)
+    FILE *target_file_ptr = fopen(target_file, "w");
+    if (!target_file_ptr) {
+        perror("Error opening target file");
+        fclose(source_file_ptr);
+        return EXIT_FAILURE;
+    }
+
+    // Run the assembler
+    run_assembler(source_file_ptr, target_file_ptr);
+
+    // Close files after processing
+    fclose(source_file_ptr);
+    fclose(target_file_ptr);
+
+    return EXIT_SUCCESS;
 
     return EXIT_SUCCESS;
 }

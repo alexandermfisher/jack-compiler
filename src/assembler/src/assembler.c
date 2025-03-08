@@ -5,13 +5,22 @@
 #include <stdlib.h>
 
 
-int run_assembler(const char *input_asm, const char *output_hack) {
+int run_assembler(FILE *source_asm, FILE *target_hack) {
     // validate file extensions:
-    if (!input_asm || !output_hack) {
+    if (!source_asm || !target_hack) {
         fprintf(stderr, "Error: NULL input or output file path.\n");
         return EXIT_FAILURE;
     }
-    // open files:
+
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    while ((read = getline(&line, &len, source_asm)) != -1) {
+        printf("%s", line);  // Print each line as read
+    }
+
+    free(line);  // Free memory allocated by getline
 
     // Initialise Parser
 
