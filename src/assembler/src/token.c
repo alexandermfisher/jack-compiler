@@ -14,7 +14,7 @@ const char *token_type_to_str(const TokenType type) {
         case OPERATOR: return "OPERATOR";
         case SEPARATOR: return "SEPARATOR";
         case NEWLINE: return "NEWLINE";
-        default: return "UNKNOWN_TOKEN_TYPE";
+        default: return "INVALID";
     }
 }
 
@@ -104,8 +104,143 @@ Token *malloc_token(void) {
 }
 
 void free_token(Token *token) {
+    if (!token) return;
+
+    if (token->type == SYMBOL && token->value.symbol) {
+        free(token->value.symbol);
+    }
     free(token);
 }
 
 
+void write_token(FILE *file, const Token token) {
+    switch (token.type) {
+        case KEYWORD:
+            fprintf(file, "KEYWORD %d\n", token.value.keyword);
+        break;
+        case OPERATOR:
+            fprintf(file, "OPERATOR %d\n", token.value.operator);
+        break;
+        case SEPARATOR:
+            fprintf(file, "SEPARATOR %d\n", token.value.separator);
+        break;
+        case INTEGER_LITERAL:
+            fprintf(file, "INTEGER_LITERAL %d\n", token.value.integer);
+        break;
+        case SYMBOL:
+            fprintf(file, "SYMBOL %s\n", token.value.symbol);
+        break;
+        case NEWLINE:
+            fprintf(file, "NEWLINE\n");
+        break;
+        case INVALID:
+            fprintf(file, "INVALID %s\n", token.value.symbol);
+        break;
+    }
+}
 
+bool add_token(TokenTable **head, TokenTable **tail, Token *new_token) {
+    TokenTable *new_node = malloc(sizeof(TokenTable));
+    if (!new_node) {
+        perror("Failed to allocate memory for new element in token table.");
+        return false;
+    }
+
+    new_node->token = new_token;
+    new_node->next = NULL;
+
+    if (*tail) {
+        // Append to the end
+        (*tail)->next = new_node;
+    } else {
+        // First element in list
+        (*head) = new_node;
+    }
+    // Update tail pointer
+    *tail = new_node;
+    return true;
+}
+
+void free_token_table(TokenTable **head) {
+    TokenTable *current = *head;
+    while (current) {
+        TokenTable *next = current->next;
+        free_token(current->token);
+        free(current);
+        current = next;
+    }
+    *head = NULL;
+}
+
+Token *create_token(const TokenType type, void *value) {
+    Token *token = (Token *)malloc(sizeof(Token));
+    if (!token) {
+        perror("Failed to allocate memory for token");
+        return NULL;
+    }
+
+    token->type = type;
+
+    switch (type) {
+        case SYMBOL:
+            if (value) {
+                token->value.symbol = strdup((char *)value);
+                if (!token->value.symbol) {
+                    perror("Failed to allocate memory for symbol");
+                    free(token);
+                    return NULL;
+                }
+            } else {
+                token->value.symbol = NULL;
+            }
+        break;
+
+        case INTEGER_LITERAL:
+            if (value) {
+                token->value.integer = *(int *)value;
+            } else {
+                free(token);
+                return NULL; // Integer literal requires a value
+            }
+        break;
+
+        case KEYWORD:
+            if (value) {
+                token->value.keyword = *(Keyword *)value;
+            } else {
+                free(token);
+                return NULL;
+            }
+        break;
+
+        case OPERATOR:
+            if (value) {
+                token->value.operator = *(Operator *)value;
+            } else {
+                free(token);
+                return NULL;
+            }
+        break;
+
+        case SEPARATOR:
+            if (value) {
+                token->value.separator = *(Separator *)value;
+            } else {
+                free(token);
+                return NULL;
+            }
+        break;
+
+        case NEWLINE:
+        case INVALID:
+            token->value.symbol = NULL;  // No additional data needed
+        break;
+
+        default:
+            fprintf(stderr, "Invalid token type\n");
+        free(token);
+        return NULL;
+    }
+
+    return token;
+}

@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <unistd.h>
 #include <utils.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 
 
@@ -103,4 +102,6 @@ void test_parse_arguments(void) {
     }
     wait(&status);
     assert(WIFEXITED(status) && WEXITSTATUS(status) == EXIT_FAILURE);
+
+    printf("    ✅ test_parse_arguments passed!\n");
 }

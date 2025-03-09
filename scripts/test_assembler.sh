@@ -4,7 +4,7 @@
 BUILD_TYPE="debug"
 
 # List of test names to run (easily editable)
-TEST_NAMES=("assembler" "parser" "code" "symbol_table" "utils")  # Add test names here
+TEST_NAMES=("assembler" "parser" "token" "code" "symbol_table" "utils")  # Add test names here
 
 # Parse options
 while getopts "b:" opt; do
