@@ -5,7 +5,6 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 #include <stdio.h>
-#include <stdbool.h>
 
 // Token Type:
 typedef enum {
@@ -69,28 +68,11 @@ const char *keyword_to_str(Keyword keyword);
 const char *operator_to_str(Operator op);
 const char *separator_to_str(Separator sep);
 
-// Mapping strings back to enums:
-TokenType str_to_token_type(const char *str);
-Keyword str_to_keyword(const char *str);
-Operator str_to_operator(const char *str);
-Separator str_to_separator(const char *str);
-
-Token *create_token(TokenType type, void *value);
-void write_token(FILE *file, Token token);
-Token read_token(FILE *file);
-Token *malloc_token(void);
+// Token *create_token(TokenType type, void *value);
+Token *create_token(const TokenType type, ...);
 void free_token(Token *token);
+void write_token(FILE *file, Token token);
 
 
-typedef struct TokenTable {
-    Token *token;
-    struct TokenTable *next;
-} TokenTable;
-
-// Add a token to the end of the list (efficient with tail pointer)
-bool add_token(TokenTable **head, TokenTable **tail, Token *new_token);
-
-// Free the entire token list (clean up memory)
-void free_token_table(TokenTable **head);
 
 #endif //TOKEN_H

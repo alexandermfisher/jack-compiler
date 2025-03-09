@@ -7,8 +7,16 @@ A fully-fledged compiler would typically wrap everything into a single tool that
 
 TODO:
 - main:
-common should compile if mistakes in main (make a syntax error in main and try)
-open files pointers and pass to assembler 
+
+process_label (starts with '(' and ends with ')' )
+process_symbol
+
+validate_label
+hash define max label size (printf sderr if breached)
+
+process_symbol
+
+
   
 lex_line in assembler 
 for tokens just added - check for labels and add to symbol table

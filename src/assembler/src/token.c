@@ -1,8 +1,8 @@
 //
 // Created by alexanderfisher on 08/03/25.
 //
-
 #include "token.h"
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -56,53 +56,6 @@ const char *separator_to_string(const Separator sep) {
     }
 }
 
-TokenType str_to_token_type(const char *str) {
-    if (strcmp(str, "SYMBOL") == 0) return SYMBOL;
-    if (strcmp(str, "KEYWORD") == 0) return KEYWORD;
-    if (strcmp(str, "INTEGER_LITERAL") == 0) return INTEGER_LITERAL;
-    if (strcmp(str, "OPERATOR") == 0) return OPERATOR;
-    if (strcmp(str, "SEPARATOR") == 0) return SEPARATOR;
-    if (strcmp(str, "NEWLINE") == 0) return NEWLINE;
-    return -1;
-}
-
-Keyword str_to_keyword(const char *str) {
-    if (strcmp(str, "A") == 0) return KW_A;
-    if (strcmp(str, "D") == 0) return KW_D;
-    if (strcmp(str, "M") == 0) return KW_M;
-    if (strcmp(str, "JGT") == 0) return KW_JGT;
-    if (strcmp(str, "JEQ") == 0) return KW_JEQ;
-    if (strcmp(str, "JGE") == 0) return KW_JGE;
-    if (strcmp(str, "JLT") == 0) return KW_JLT;
-    if (strcmp(str, "JNE") == 0) return KW_JNE;
-    if (strcmp(str, "JLE") == 0) return KW_JLE;
-    if (strcmp(str, "JMP") == 0) return KW_JMP;
-    return -1;
-}
-
-Operator str_to_operator(const char *str) {
-    if (strcmp(str, "@") == 0) return OP_AT;
-    if (strcmp(str, "=") == 0) return OP_ASSIGN;
-    if (strcmp(str, "+") == 0) return OP_ADD;
-    if (strcmp(str, "-") == 0) return OP_SUB;
-    if (strcmp(str, "!") == 0) return OP_NOT;
-    if (strcmp(str, "&") == 0) return OP_AND;
-    if (strcmp(str, "|") == 0) return OP_OR;
-    return -1;
-}
-
-Separator str_to_separator(const char *str) {
-    if (strcmp(str, ";") == 0) return SEP_SEMICOLON;
-    if (strcmp(str, "(") == 0) return SEP_LPAREN;
-    if (strcmp(str, ")") == 0) return SEP_RPAREN;
-    return -1;
-}
-
-Token *malloc_token(void) {
-    Token *token = malloc(sizeof(Token));
-    return token;
-}
-
 void free_token(Token *token) {
     if (!token) return;
 
@@ -111,7 +64,6 @@ void free_token(Token *token) {
     }
     free(token);
 }
-
 
 void write_token(FILE *file, const Token token) {
     switch (token.type) {
@@ -139,108 +91,116 @@ void write_token(FILE *file, const Token token) {
     }
 }
 
-bool add_token(TokenTable **head, TokenTable **tail, Token *new_token) {
-    TokenTable *new_node = malloc(sizeof(TokenTable));
-    if (!new_node) {
-        perror("Failed to allocate memory for new element in token table.");
-        return false;
-    }
-
-    new_node->token = new_token;
-    new_node->next = NULL;
-
-    if (*tail) {
-        // Append to the end
-        (*tail)->next = new_node;
-    } else {
-        // First element in list
-        (*head) = new_node;
-    }
-    // Update tail pointer
-    *tail = new_node;
-    return true;
-}
-
-void free_token_table(TokenTable **head) {
-    TokenTable *current = *head;
-    while (current) {
-        TokenTable *next = current->next;
-        free_token(current->token);
-        free(current);
-        current = next;
-    }
-    *head = NULL;
-}
-
-Token *create_token(const TokenType type, void *value) {
-    Token *token = (Token *)malloc(sizeof(Token));
-    if (!token) {
-        perror("Failed to allocate memory for token");
-        return NULL;
-    }
+Token *create_token(TokenType type, ...) {
+    Token *token = malloc(sizeof(Token));
+    if (!token) return NULL;  // Allocation failure
 
     token->type = type;
+    va_list args;
+    va_start(args, type);
 
     switch (type) {
-        case SYMBOL:
-            if (value) {
-                token->value.symbol = strdup((char *)value);
-                if (!token->value.symbol) {
-                    perror("Failed to allocate memory for symbol");
-                    free(token);
-                    return NULL;
-                }
-            } else {
-                token->value.symbol = NULL;
-            }
-        break;
-
-        case INTEGER_LITERAL:
-            if (value) {
-                token->value.integer = *(int *)value;
-            } else {
-                free(token);
-                return NULL; // Integer literal requires a value
-            }
-        break;
-
-        case KEYWORD:
-            if (value) {
-                token->value.keyword = *(Keyword *)value;
-            } else {
-                free(token);
-                return NULL;
-            }
-        break;
-
-        case OPERATOR:
-            if (value) {
-                token->value.operator = *(Operator *)value;
-            } else {
-                free(token);
-                return NULL;
-            }
-        break;
-
-        case SEPARATOR:
-            if (value) {
-                token->value.separator = *(Separator *)value;
-            } else {
-                free(token);
-                return NULL;
-            }
-        break;
-
+        case SYMBOL: {
+            char *symbol = va_arg(args, char *);
+            if (!symbol) { free(token); return NULL; }
+            token->value.symbol = strdup(symbol);
+            break;
+        }
+        case INTEGER_LITERAL: {
+            const int num = va_arg(args, int);
+            token->value.integer = num;
+            break;
+        }
+        case KEYWORD: {
+            const Keyword kw = va_arg(args, Keyword);
+            token->value.keyword = kw;
+            break;
+        }
+        case OPERATOR: {
+            const Operator op = va_arg(args, Operator);
+            token->value.operator = op;
+            break;
+        }
+        case SEPARATOR: {
+            const Separator sep = va_arg(args, Separator);
+            token->value.separator = sep;
+            break;
+        }
         case NEWLINE:
         case INVALID:
-            token->value.symbol = NULL;  // No additional data needed
+            // No additional arguments expected for these cases
+            token->value.symbol = NULL;
         break;
-
         default:
-            fprintf(stderr, "Invalid token type\n");
-        free(token);
-        return NULL;
+            free(token);
+        token = NULL;
+        break;
     }
 
+    va_end(args);
     return token;
 }
+
+
+
+
+
+
+
+
+
+
+// Token *create_token(const TokenType type, void *value) {
+//     if (type != NEWLINE && type != INVALID && !value) {
+//         return NULL;
+//     }
+//
+//     Token *token = malloc(sizeof(Token));
+//     if (!token) {
+//         perror("Failed to allocate memory for token");
+//         return NULL;
+//     }
+//
+//     token->type = type;
+//
+//     switch (type) {
+//         case SYMBOL:
+//             token->value.symbol = strdup(value);
+//         if (!token->value.symbol) {
+//             perror("Failed to allocate memory for symbol");
+//             free(token);
+//             return NULL;
+//         }
+//         break;
+//
+//         case INTEGER_LITERAL:
+//             token->value.integer = *(int *)value;
+//         break;
+//
+//         case KEYWORD:
+//             token->value.keyword = *(Keyword *)value;
+//         break;
+//
+//         case OPERATOR:
+//             token->value.operator = *(Operator *)value;
+//         break;
+//
+//         case SEPARATOR:
+//             token->value.separator = *(Separator *)value;
+//         break;
+//
+//         case NEWLINE:
+//         case INVALID:
+//             token->value.symbol = NULL; // No additional data needed
+//         break;
+//
+//         default:
+//             fprintf(stderr, "Invalid token type\n");
+//         free(token);
+//         return NULL;
+//     }
+//
+//     return token;
+// }
+
+

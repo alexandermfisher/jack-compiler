@@ -1,5 +1,4 @@
 #include "assembler.h"
-#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -11,6 +10,12 @@ int run_assembler(FILE *source_asm, FILE *target_hack) {
         fprintf(stderr, "Error: NULL input or output file path.\n");
         return EXIT_FAILURE;
     }
+
+    // Create and initialise token table, and symbol table
+
+
+    // First Pass - tokenise line by line and populate symbol table with labels
+
 
     char *line = NULL;
     size_t len = 0;
@@ -28,3 +33,8 @@ int run_assembler(FILE *source_asm, FILE *target_hack) {
 
     return 0;
 }
+
+int lex_line(void) {
+    return 1;
+}
+

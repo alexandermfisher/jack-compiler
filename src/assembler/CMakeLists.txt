@@ -9,8 +9,10 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 add_library(assembler STATIC
         src/assembler.c
         src/code-generator.c
+        src/line_processor.c
         src/parser.c
         src/token.c
+        src/token_table.c
         src/symbol_table.c
         src/utils.c
 )
