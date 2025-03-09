@@ -10,6 +10,9 @@ TODO:
 common should compile if mistakes in main (make a syntax error in main and try)
 open files pointers and pass to assembler 
   
+lex_line in assembler 
+for tokens just added - check for labels and add to symbol table
+
 
 - assembler accepts two file pointers 
   - instantiate parser
