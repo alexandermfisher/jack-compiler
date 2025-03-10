@@ -23,5 +23,8 @@ bool symbol_table_contains(SymbolTable *table, const char *symbol);
 // Get the address associated with a symbol
 int symbol_table_get_address(SymbolTable *table, const char *symbol);
 
+// Function to load predefined symbols into the symbol table
+bool load_predefined_symbols(SymbolTable *table);
+
 #endif // SYMBOL_TABLE_H
 

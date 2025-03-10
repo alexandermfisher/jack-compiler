@@ -6,6 +6,7 @@
 #define LINE_PROCESSOR_H
 
 #include "token_table.h"
+#include "symbol_table.h"
 
 #define MAX_LABEL_LEN 256
 
@@ -17,12 +18,18 @@ typedef enum {
 } ProcessStatus;
 
 
-ProcessStatus process_line(const char *line, TokenTable *table);
+ProcessStatus process_line(const char *line, TokenTable *token_table, SymbolTable *symbol_table, int *rom_address);
 
 const char *preprocess_line(const char *line);
 
-ProcessStatus process_label(const char *line, TokenTable *table);
+ProcessStatus process_label(const char **line, TokenTable *token_table, SymbolTable *symbol_table, int *rom_address);
 
-ProcessStatus process_a_instruction(const char *line, TokenTable *table);
+ProcessStatus process_symbol(const char **line, char *buffer);
+
+bool is_keyword(const char *symbol);
+
+bool is_line_end_or_comment(const char *line);
+
+ProcessStatus process_a_instruction(const char *line, TokenTable *token_table);
 
 #endif //LINE_PROCESSOR_H
