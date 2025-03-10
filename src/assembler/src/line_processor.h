@@ -7,6 +7,8 @@
 
 #include "token_table.h"
 
+#define MAX_LABEL_LEN 256
+
 typedef enum {
     PROCESS_SUCCESS,   // Successfully processed a valid line
     PROCESS_EMPTY,     // Empty or comment line (ignore)
