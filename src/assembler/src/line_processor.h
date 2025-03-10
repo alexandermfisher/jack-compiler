@@ -19,6 +19,8 @@ ProcessStatus process_line(const char *line, TokenTable *table);
 
 const char *preprocess_line(const char *line);
 
+ProcessStatus process_label(const char *line, TokenTable *table);
+
 ProcessStatus process_a_instruction(const char *line, TokenTable *table);
 
 #endif //LINE_PROCESSOR_H

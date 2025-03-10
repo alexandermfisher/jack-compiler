@@ -14,7 +14,9 @@ ProcessStatus process_line(const char *line, TokenTable *table) {
     // Safe to ignore (empty/comment line)
     if (!line) return PROCESS_EMPTY;
 
-    // TODO: Handle Labels
+    // Check for L-instruction (Labels)
+    if (*line == '(') return process_label(line, table);
+
 
     // Check for A-instruction (@value)
     if (*line == '@') return process_a_instruction(line, table);
@@ -34,8 +36,30 @@ const char *preprocess_line(const char *line) {
     return line;
 }
 
+ProcessStatus process_label(const char *line, TokenTable *table) {
+    if (!line || *line != '(') return PROCESS_ERROR;
+
+    // Tokenise '('
+    Token *l_paren = create_token(SEPARATOR, SEP_LPAREN);
+    if (!l_paren || !token_table_add(table, l_paren)) {
+        free_token(l_paren);
+        return PROCESS_ERROR;
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
+
 ProcessStatus process_a_instruction(const char *line, TokenTable *table) {
-    if (*line != '@') return PROCESS_ERROR;
+    if (!line || *line != '@') return PROCESS_ERROR;
 
     // Create '@' operator token
     Token *at_token = create_token(OPERATOR, OP_AT);
