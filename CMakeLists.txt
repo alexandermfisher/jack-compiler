@@ -13,7 +13,7 @@ set(CMAKE_C_FLAGS "-Wall -Wextra -Wpedantic -Werror")
 set(CMAKE_C_FLAGS_DEBUG "-g -O0 -DDEBUG -fno-omit-frame-pointer -fstack-protector-strong")
 
 # Release flags
-set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG -march=native -flto")
+set(CMAKE_C_FLAGS_RELEASE "-O2 -march=native -flto")
 
 # MemCheck option (enabled via -DENABLE_MEMCHECK=ON)
 option(ENABLE_MEMCHECK "Enable memory checking tools (Valgrind Memcheck)" OFF)

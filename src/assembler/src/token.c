@@ -2,9 +2,11 @@
 // Created by alexanderfisher on 08/03/25.
 //
 #include "token.h"
+#include "config.h"
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 const char *token_type_to_str(const TokenType type) {
     switch (type) {
@@ -34,7 +36,7 @@ const char *keyword_to_str(const Keyword keyword) {
     }
 }
 
-const char *operator_to_string(const Operator op) {
+const char *operator_to_str(const Operator op) {
     switch (op) {
         case OP_AT: return "@";
         case OP_ASSIGN: return "=";
@@ -47,7 +49,7 @@ const char *operator_to_string(const Operator op) {
     }
 }
 
-const char *separator_to_string(const Separator sep) {
+const char *separator_to_str(const Separator sep) {
     switch (sep) {
         case SEP_SEMICOLON: return ";";
         case SEP_LPAREN: return "(";
@@ -65,35 +67,47 @@ void free_token(Token *token) {
     free(token);
 }
 
-void write_token(FILE *file, const Token token) {
-    switch (token.type) {
+char *token_to_str(const Token *token) {
+    if (!token) return NULL;
+
+    // Ensure buffer size accounts for longest possible SYMBOL + formatting
+    const size_t buffer_size = MAX_LABEL_LEN + 32;
+    char *buffer = malloc(buffer_size);
+    if (!buffer) return NULL;
+
+    switch (token->type) {
         case KEYWORD:
-            fprintf(file, "KEYWORD %d\n", token.value.keyword);
+            snprintf(buffer, buffer_size, "KEYWORD %s", keyword_to_str(token->value.keyword));
         break;
         case OPERATOR:
-            fprintf(file, "OPERATOR %d\n", token.value.operator);
+            snprintf(buffer, buffer_size, "OPERATOR %s", operator_to_str(token->value.operator));
         break;
         case SEPARATOR:
-            fprintf(file, "SEPARATOR %d\n", token.value.separator);
+            snprintf(buffer, buffer_size, "SEPARATOR %s", separator_to_str(token->value.separator));
         break;
         case INTEGER_LITERAL:
-            fprintf(file, "INTEGER_LITERAL %d\n", token.value.integer);
+            snprintf(buffer, buffer_size, "INTEGER_LITERAL %d", token->value.integer);
         break;
         case SYMBOL:
-            fprintf(file, "SYMBOL %s\n", token.value.symbol);
+            snprintf(buffer, buffer_size, "SYMBOL %s", token->value.symbol);
         break;
         case NEWLINE:
-            fprintf(file, "NEWLINE\n");
+            snprintf(buffer, buffer_size, "NEWLINE");
         break;
         case INVALID:
-            fprintf(file, "INVALID %s\n", token.value.symbol);
+            snprintf(buffer, buffer_size, "INVALID %s", token->value.symbol);
+        break;
+        default:
+            snprintf(buffer, buffer_size, "UNKNOWN TOKEN TYPE");
         break;
     }
+
+    return buffer;
 }
 
 Token *create_token(TokenType type, ...) {
     Token *token = malloc(sizeof(Token));
-    if (!token) return NULL;  // Allocation failure
+    if (!token) return NULL;
 
     token->type = type;
     va_list args;
@@ -140,67 +154,4 @@ Token *create_token(TokenType type, ...) {
     va_end(args);
     return token;
 }
-
-
-
-
-
-
-
-
-
-
-// Token *create_token(const TokenType type, void *value) {
-//     if (type != NEWLINE && type != INVALID && !value) {
-//         return NULL;
-//     }
-//
-//     Token *token = malloc(sizeof(Token));
-//     if (!token) {
-//         perror("Failed to allocate memory for token");
-//         return NULL;
-//     }
-//
-//     token->type = type;
-//
-//     switch (type) {
-//         case SYMBOL:
-//             token->value.symbol = strdup(value);
-//         if (!token->value.symbol) {
-//             perror("Failed to allocate memory for symbol");
-//             free(token);
-//             return NULL;
-//         }
-//         break;
-//
-//         case INTEGER_LITERAL:
-//             token->value.integer = *(int *)value;
-//         break;
-//
-//         case KEYWORD:
-//             token->value.keyword = *(Keyword *)value;
-//         break;
-//
-//         case OPERATOR:
-//             token->value.operator = *(Operator *)value;
-//         break;
-//
-//         case SEPARATOR:
-//             token->value.separator = *(Separator *)value;
-//         break;
-//
-//         case NEWLINE:
-//         case INVALID:
-//             token->value.symbol = NULL; // No additional data needed
-//         break;
-//
-//         default:
-//             fprintf(stderr, "Invalid token type\n");
-//         free(token);
-//         return NULL;
-//     }
-//
-//     return token;
-// }
-
 

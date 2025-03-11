@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <string.h>
 #include <token.h>
+#include <stdio.h>
 
 void test_create_token(void);
 
@@ -18,8 +19,6 @@ int main(void) {
 }
 
 void test_create_token(void) {
-    printf("Running test_create_token...\n");
-
     // Test SYMBOL token
     Token *symbol_token = create_token(SYMBOL, "LOOP");
     assert(symbol_token != NULL);

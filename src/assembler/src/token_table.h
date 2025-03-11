@@ -7,6 +7,7 @@
 
 #include <stdbool.h>
 #include "token.h"
+#include <stdio.h>
 
 // Declare TokenTable as an opaque type
 typedef struct TokenTable TokenTable;
@@ -26,5 +27,7 @@ void token_table_reset(TokenTable *table);
 // Free the entire token table
 void token_table_free(TokenTable *table);
 
+// Write tokens to file:
+void token_table_write_to_file(FILE *file, TokenTable *table);
 
 #endif //TOKEN_TABLE_H

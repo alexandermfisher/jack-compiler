@@ -6,14 +6,17 @@
 #include <string.h>
 #include <token_table.h>
 #include <line_processor.h>
+#include <symbol_table.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
+#include <config.h>
+
 
 void test_preprocess_line(void);
 void test_is_keyword(void);
 void test_is_line_end_or_comment(void);
 void test_process_symbol(void);
+void test_process_label(void);
 
 
 void test_process_line(void);
@@ -21,13 +24,13 @@ void test_process_a_instruction(void);
 
 
 int main(void) {
-    // Redirect stderr to suppress expected error messages
-
-    printf("Starting test_assembler...\n");
+    printf("Starting test_line_processor...\n");
     test_preprocess_line();
     test_is_keyword();
     test_is_line_end_or_comment();
     test_process_symbol();
+    test_process_label();
+    test_process_label();
     //test_process_a_instruction();
     //test_process_line();
     printf("Test completed.\n");
@@ -50,8 +53,6 @@ void test_preprocess_line(void) {
         {"@123  // Load 123", "@123  // Load 123"}
     };
 
-    printf("Running test_preprocess_line...\n");
-
     const size_t num_tests = sizeof(test_cases) / sizeof(test_cases[0]);
     for (size_t i = 0; i < num_tests; i++) {
         const char *processed = preprocess_line(test_cases[i].input);
@@ -67,7 +68,6 @@ void test_preprocess_line(void) {
 }
 
 void test_is_keyword(void) {
-    printf("Running test_is_keyword...\n");
 
     // ✅ Test: Reserved keywords
     assert(is_keyword("A"));
@@ -86,7 +86,6 @@ void test_is_keyword(void) {
 }
 
 void test_is_line_end_or_comment(void) {
-    printf("Running test_is_line_end_or_comment...\n");
 
     // ✅ Test: Only whitespace
     assert(is_line_end_or_comment("   \t  "));
@@ -107,9 +106,8 @@ void test_is_line_end_or_comment(void) {
 }
 
 void test_process_symbol(void) {
-    printf("Running test_process_symbol...\n");
 
-    const char *line;
+    const char *line = NULL;
     char buffer[MAX_LABEL_LEN + 1];
 
     // ✅ Test: Valid symbol "LOOP"
@@ -172,10 +170,107 @@ void test_process_symbol(void) {
     long_symbol[MAX_LABEL_LEN] = 'B'; // Will be truncated off buffer
     long_symbol[MAX_LABEL_LEN + 1] = '\0';
     line = long_symbol;
+    memset(buffer, 0, MAX_LABEL_LEN + 1);
     assert(process_symbol(&line, buffer) == PROCESS_ERROR);
     assert(strlen(buffer) == MAX_LABEL_LEN);
     printf("    ✅ test_process_symbol passed!\n");
 }
+
+void test_process_label(void) {
+
+    SymbolTable *symbol_table = symbol_table_create();
+    TokenTable *token_table = token_table_create();
+    int rom_address = 0;
+
+    assert(symbol_table != NULL);
+    assert(token_table != NULL);
+
+    // ✅ Test: Valid label
+    const char *line1 = "(LOOP)";
+    assert(process_label(&line1, token_table, symbol_table, &rom_address) == PROCESS_SUCCESS);
+    assert(symbol_table_contains(symbol_table, "LOOP"));
+    assert(symbol_table_get_address(symbol_table, "LOOP") == 0);
+    assert(rom_address == 1);
+
+    // ✅ Test: Valid label with new address
+    const char *line2 = "(END)";
+    assert(process_label(&line2, token_table, symbol_table, &rom_address) == PROCESS_SUCCESS);
+    assert(symbol_table_contains(symbol_table, "END"));
+    assert(symbol_table_get_address(symbol_table, "END") == 1);
+    assert(rom_address == 2);
+
+    // ❌ Test: Reserved keyword as label
+    const char *line3 = "(THIS)";
+    assert(process_label(&line3, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // ❌ Test: Missing '('
+    const char *line4 = "LOOP)";
+    assert(process_label(&line4, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // ❌ Test: Empty label
+    const char *line5 = "()";
+    assert(process_label(&line5, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // ❌ Test: Duplicate label
+    const char *line6 = "(LOOP)";
+    assert(process_label(&line6, token_table, symbol_table, &rom_address) == PROCESS_SUCCESS);
+    assert(symbol_table_get_address(symbol_table, "LOOP") == 0);  // Should remain at 0
+    assert(rom_address == 2);  // Should not increment again
+
+    // ❌ Test: Extra closing parenthesis
+    const char *line7 = "(LABEL))";
+    assert(process_label(&line7, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // ❌ Test: Closing parenthesis followed by a slash
+    const char *line8 = "(LABEL)/";
+    assert(process_label(&line8, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // ✅  Test: Closing parenthesis immediately followed by double slashes
+    const char *line9 = "(LABEL)//";
+    assert(process_label(&line9, token_table, symbol_table, &rom_address) == PROCESS_SUCCESS);
+    assert(symbol_table_contains(symbol_table, "LABEL"));
+    assert(symbol_table_get_address(symbol_table, "LABEL") == 2);
+    assert(rom_address == 3);
+
+    // ✅ Test: Closing parenthesis followed by a comment (valid)
+    const char *line10 = "(jump_10) // comment";
+    assert(process_label(&line10, token_table, symbol_table, &rom_address) == PROCESS_SUCCESS);
+    assert(symbol_table_contains(symbol_table, "jump_10"));
+    assert(symbol_table_get_address(symbol_table, "jump_10") == 3);
+    assert(rom_address == 4);
+
+    // ✅ Test: Label with trailing spaces
+    const char *line11 = "(LABEL)   ";
+    assert(process_label(&line11, token_table, symbol_table, &rom_address) == PROCESS_SUCCESS);
+    assert(symbol_table_contains(symbol_table, "LABEL"));
+    assert(symbol_table_get_address(symbol_table, "LABEL") == 2);
+    assert(rom_address == 4);
+
+    // ❌ Test: Label with spaces before and after
+    const char *line12 = "( JUMP )";
+    assert(process_label(&line12, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // ❌ Test: Label with leading spaces
+    const char *line13 = "   (LABEL)";
+    assert(process_label(&line13, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // ❌ Test: Label with spaces before and after the parentheses
+    const char *line14 = "   (LABEL)   ";
+    assert(process_label(&line14, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // ❌ Test: Label with spaces in the middle (multiple words)
+    const char *line15 = "(MULTI WORD)";
+    assert(process_label(&line15, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // Cleanup
+    symbol_table_free(symbol_table);
+    token_table_free(token_table);
+
+    printf("    ✅ test_process_label passed!\n");
+}
+
+
+
 
 
 

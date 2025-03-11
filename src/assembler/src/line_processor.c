@@ -2,6 +2,7 @@
 // Created by Alexander Fisher on 09/03/2025.
 //
 #include "line_processor.h"
+#include "config.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,23 +11,21 @@
 ProcessStatus process_line(const char *line, TokenTable *token_table, SymbolTable *symbol_table, int *rom_address) {
     if (!line || !token_table) return PROCESS_ERROR;
 
+    // Trim leading whitespace (Safe to ignore empty/comment line)
     line = preprocess_line(line);
-
-    // Safe to ignore (empty/comment line)
-    if (!line) return PROCESS_EMPTY;
+    if (!line) return PROCESS_SUCCESS;
 
     // Check for L-instruction (Labels)
     if (*line == '(') return process_label(&line, token_table, symbol_table, rom_address);
 
     // Check for A-instruction (@value)
-    if (*line == '@') return process_a_instruction(line, token_table);
+    // if (*line == '@') return process_a_instruction(line, token_table);
 
     // TODO: Handle C-instructions...
 
     return PROCESS_SUCCESS;
 }
 
-// Function to trim leading whitespace and handle empty/comment lines
 const char *preprocess_line(const char *line) {
     // Skip leading whitespace
     while (*line == ' ' || *line == '\t') line++;
@@ -68,7 +67,9 @@ bool is_line_end_or_comment(const char *line) {
 }
 
 ProcessStatus process_label(const char **line, TokenTable *token_table, SymbolTable *symbol_table, int *rom_address) {
-    if (!*line || **line != '(') return PROCESS_ERROR;
+    if (!*line || !token_table || !symbol_table || !rom_address) return PROCESS_ERROR;
+
+    if (**line != '(') return PROCESS_INVALID;
 
     // Tokenize '('
     Token *l_paren = create_token(SEPARATOR, SEP_LPAREN);
@@ -98,7 +99,7 @@ ProcessStatus process_label(const char **line, TokenTable *token_table, SymbolTa
     }
 
     // Add symbol to table
-    if (symbol_table_contains(symbol_table, buffer)) {
+    if (!symbol_table_contains(symbol_table, buffer)) {
         if (!symbol_table_add(symbol_table, buffer, *rom_address)) {
             return PROCESS_ERROR;
         }
@@ -113,7 +114,7 @@ ProcessStatus process_label(const char **line, TokenTable *token_table, SymbolTa
         free_token(r_paren);
         return PROCESS_ERROR;
     }
-    (*line)++;  // Move past ')'
+    (*line)++;
 
     // Ensure only whitespace or comments remain
     if (!is_line_end_or_comment(*line)) {
@@ -139,7 +140,7 @@ ProcessStatus process_symbol(const char **line, char *buffer) {
     int i = 0;
     while (isalnum(**line) || **line == '_' || **line == '.' || **line == '$' || **line == ':') {
         if (i == MAX_LABEL_LEN) {
-            //fprintf(stderr, "Buffer Overflow: Label exceeds MAX_LABEL_LEN: %d\n", MAX_LABEL_LEN);
+            fprintf(stderr, "Buffer Overflow: Label exceeds MAX_LABEL_LEN: %d\n", MAX_LABEL_LEN);
             return PROCESS_ERROR;
         }
         buffer[i++] = **line;
@@ -160,7 +161,9 @@ ProcessStatus process_symbol(const char **line, char *buffer) {
 
 
 ProcessStatus process_a_instruction(const char *line, TokenTable *token_table) {
-    if (!line || *line != '@') return PROCESS_ERROR;
+    if (!line || !token_table) return PROCESS_ERROR;
+
+    if (*line != '@') return PROCESS_ERROR;
 
     // Create '@' operator token
     Token *at_token = create_token(OPERATOR, OP_AT);

@@ -4,8 +4,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <symbol_table.h>
+#include "config.h"
 
-#define MAX_NUM_SYMBOLS 100
 
 void test_symbol_table(void);
 void test_load_symbol_table(void);
@@ -19,8 +19,6 @@ int main(void) {
 }
 
 void test_symbol_table(void) {
-    printf("Running test_symbol_table...\n");
-
     // Create a new symbol table
     SymbolTable *table = symbol_table_create();
     assert(table != NULL);
@@ -64,8 +62,6 @@ void test_symbol_table(void) {
 }
 
 void test_load_symbol_table(void) {
-    printf("Running test_load_symbol_table...\n");
-
     // Create a new symbol table
     SymbolTable *table = symbol_table_create();
     assert(table != NULL);

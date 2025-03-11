@@ -100,13 +100,11 @@ int main(const int argc, char *argv[]) {
     }
 
     // Run the assembler
-    run_assembler(source_file_ptr, target_file_ptr);
+    run_assembler(source_file_ptr, source_file, target_file_ptr);
 
     // Close files after processing
     fclose(source_file_ptr);
     fclose(target_file_ptr);
-
-    return EXIT_SUCCESS;
 
     return EXIT_SUCCESS;
 }

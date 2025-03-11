@@ -1,9 +1,9 @@
 #include "symbol_table.h"
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-#define MAX_NUM_SYMBOLS 100
 #define PREDEFINED_COUNT 23
 
 // Internal structure for a symbol entry
@@ -44,18 +44,13 @@ void symbol_table_free(SymbolTable *table) {
 bool symbol_table_add(SymbolTable *table, const char *symbol, const int address) {
     if (!table || !symbol) return false;
 
+    if (symbol_table_contains(table, symbol)) return false;
+
     // Check if the table is full
     if (table->count >= MAX_NUM_SYMBOLS) {
         fprintf(stderr, "Error: Maximum number of symbols (%d) reached. Cannot add symbol '%s'.\n",
                 MAX_NUM_SYMBOLS, symbol);
         return false;
-    }
-
-    // Check if the symbol already exists
-    for (size_t i = 0; i < table->count; i++) {
-        if (strcmp(table->entries[i].symbol, symbol) == 0) {
-            return false; // Symbol already exists
-        }
     }
 
     // Allocate and copy the symbol name

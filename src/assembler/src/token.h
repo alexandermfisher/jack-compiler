@@ -4,7 +4,7 @@
 
 #ifndef TOKEN_H
 #define TOKEN_H
-#include <stdio.h>
+
 
 // Token Type:
 typedef enum {
@@ -43,7 +43,7 @@ typedef enum {
 typedef enum {
     SEP_SEMICOLON,  // ';' (Separates `comp` and `jump` in C-instructions: e.g., `D;JGT`)
     SEP_LPAREN,     // '('  (Label declaration start: e.g., `(LOOP)`)
-    SEP_RPAREN      // ')'  (Label declaration end)
+    SEP_RPAREN     // ')'  (Label declaration end)
 } Separator;
 
 
@@ -69,9 +69,9 @@ const char *operator_to_str(Operator op);
 const char *separator_to_str(Separator sep);
 
 // Token *create_token(TokenType type, void *value);
-Token *create_token(const TokenType type, ...);
+Token *create_token(TokenType type, ...);
 void free_token(Token *token);
-void write_token(FILE *file, Token token);
+char *token_to_str(const Token *token);
 
 
 

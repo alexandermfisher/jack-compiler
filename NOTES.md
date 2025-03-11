@@ -7,25 +7,9 @@ A fully-fledged compiler would typically wrap everything into a single tool that
 
 TODO:
 - main:
+  make process_integer_literal 
+  make process_a_instruction
 
-process_label (starts with '(' and ends with ')' )
-process_symbol
-
-validate_label
-hash define max label size (printf sderr if breached)
-
-process_symbol
-
-
-  
-lex_line in assembler 
-for tokens just added - check for labels and add to symbol table
-
-
-- assembler accepts two file pointers 
-  - instantiate parser
-- parser header file and typedefs 
-- implement interface as stated in nand2tetris 
 
 
 

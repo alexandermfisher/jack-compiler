@@ -77,4 +77,15 @@ void token_table_free(TokenTable *table) {
     free(table);
 }
 
+void token_table_write_to_file(FILE *file, TokenTable *table) {
+    if (!file || !table) return;
 
+    token_table_reset(table);
+
+    Token *token;
+    while ((token = token_table_next(table)) != NULL) {
+        char *token_str = token_to_str(token);
+        fprintf(file, "%s\n", token_str);
+        free(token_str);
+    }
+}
