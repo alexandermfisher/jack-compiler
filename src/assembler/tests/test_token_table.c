@@ -10,10 +10,7 @@
 void test_token_table(void);
 
 int main(void) {
-    printf("Starting test_token...\n");
     test_token_table();
-    printf("All tests passed successfully.\n");
-    printf("Test completed.\n");
     return 0;
 }
 
@@ -57,5 +54,5 @@ void test_token_table(void) {
     // Cleanup
     token_table_free(table);
 
-    printf("    ✅ test_token_table passed!\n");
+    printf("\t✅ test_token_table passed!\n");
 }

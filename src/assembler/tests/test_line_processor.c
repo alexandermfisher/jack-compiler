@@ -7,7 +7,6 @@
 #include <token_table.h>
 #include <line_processor.h>
 #include <symbol_table.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <config.h>
 
@@ -17,23 +16,23 @@ void test_is_keyword(void);
 void test_is_line_end_or_comment(void);
 void test_process_symbol(void);
 void test_process_label(void);
-
+void test_process_integer_literal(void);
+void test_process_a_instruction(void);
 
 void test_process_line(void);
-void test_process_a_instruction(void);
+
 
 
 int main(void) {
-    printf("Starting test_line_processor...\n");
     test_preprocess_line();
     test_is_keyword();
     test_is_line_end_or_comment();
     test_process_symbol();
     test_process_label();
     test_process_label();
-    //test_process_a_instruction();
+    test_process_integer_literal();
+    test_process_a_instruction();
     //test_process_line();
-    printf("Test completed.\n");
 
 
     return 0;
@@ -64,7 +63,7 @@ void test_preprocess_line(void) {
         }
     }
 
-    printf("    ✅ test_preprocess_line passed!\n");
+    printf("\t✅ test_preprocess_line passed!\n");
 }
 
 void test_is_keyword(void) {
@@ -82,7 +81,7 @@ void test_is_keyword(void) {
     assert(!is_keyword("symbol123"));
     assert(!is_keyword("customLabel"));
 
-    printf("    ✅ test_is_keyword passed!\n");
+    printf("\t✅ test_is_keyword passed!\n");
 }
 
 void test_is_line_end_or_comment(void) {
@@ -102,7 +101,7 @@ void test_is_line_end_or_comment(void) {
     // ❌ Test: Just an invalid character
     assert(!is_line_end_or_comment("X"));
 
-    printf("    ✅ test_is_line_end_or_comment passed!\n");
+    printf("\t✅ test_is_line_end_or_comment passed!\n");
 }
 
 void test_process_symbol(void) {
@@ -173,7 +172,7 @@ void test_process_symbol(void) {
     memset(buffer, 0, MAX_LABEL_LEN + 1);
     assert(process_symbol(&line, buffer) == PROCESS_ERROR);
     assert(strlen(buffer) == MAX_LABEL_LEN);
-    printf("    ✅ test_process_symbol passed!\n");
+    printf("\t✅test_process_symbol passed!\n");
 }
 
 void test_process_label(void) {
@@ -262,16 +261,174 @@ void test_process_label(void) {
     const char *line15 = "(MULTI WORD)";
     assert(process_label(&line15, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
 
+    // ❌ Test: Label cannot start with a digit
+    const char *line16 = "(9symbol)";
+    assert(process_label(&line16, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // ❌ Test: Invalid character (#) in label
+    const char *line17 = "(#invalid)";
+    assert(process_label(&line17, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // ❌ Test: Multiple parentheses (invalid double label declaration)
+    const char *line18 = "(A)(B)";
+    assert(process_label(&line18, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // ❌ Test: Empty label (nothing between parentheses)
+    const char *line19 = "()";
+    assert(process_label(&line19, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // ❌ Test: Labels cannot contain a decimal point
+    const char *line20 = "(1.23)";
+    assert(process_label(&line20, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
+    // ❌ Test: Invalid label containing special characters (_#)
+    const char *line21 = "(_#notAllowed)";
+    assert(process_label(&line21, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+
     // Cleanup
     symbol_table_free(symbol_table);
     token_table_free(token_table);
 
-    printf("    ✅ test_process_label passed!\n");
+    printf("\t✅ test_process_label passed!\n");
 }
 
+void test_process_integer_literal(void) {
+    int result;
 
+    // ✅ Test: Valid minimum value (0)
+    const char *line1 = "0";
+    assert(process_integer_literal(&line1, &result) == PROCESS_SUCCESS);
+    assert(result == 0);
 
+    // ✅ Test: Valid maximum 15-bit value (32767)
+    const char *line2 = "32767";
+    assert(process_integer_literal(&line2, &result) == PROCESS_SUCCESS);
+    assert(result == 32767);
 
+    // ❌ Test: Value exceeding 15-bit limit (32768)
+    const char *line3 = "32768";
+    assert(process_integer_literal(&line3, &result) == PROCESS_INVALID);
+
+    // ❌ Test: Negative value (not allowed in Hack)
+    const char *line4 = "-1";
+    assert(process_integer_literal(&line4, &result) == PROCESS_INVALID);
+
+    // ✅ Test: Valid number with trailing space
+    const char *line5 = "123 ";
+    assert(process_integer_literal(&line5, &result) == PROCESS_SUCCESS);
+    assert(result == 123);
+
+    // ✅ Test: Valid number with comment after
+    const char *line6 = "456 // comment";
+    assert(process_integer_literal(&line6, &result) == PROCESS_SUCCESS);
+    assert(result == 456);
+
+    // ❌ Test: Non-numeric input
+    const char *line7 = "abc";
+    assert(process_integer_literal(&line7, &result) == PROCESS_INVALID);
+
+    // ❌ Test: Mixed numeric and non-numeric characters
+    const char *line8 = "12a34";
+    assert(process_integer_literal(&line8, &result) == PROCESS_INVALID);
+
+    // ❌ Test: Empty string
+    const char *line9 = "";
+    assert(process_integer_literal(&line9, &result) == PROCESS_INVALID);
+
+    // ❌ Test: NULL input
+    assert(process_integer_literal(NULL, &result) == PROCESS_ERROR);
+
+    // ❌ Test: NULL output pointer
+    const char *line10 = "42";
+    assert(process_integer_literal(&line10, NULL) == PROCESS_ERROR);
+
+    printf("\t✅ test_process_integer_literal passed!\n");
+}
+
+void test_process_a_instruction(void) {
+    TokenTable *table = token_table_create();
+
+    // ✅ Test: @2 -> OPERATOR OP_AT, INTEGER_LITERAL 2
+    const char *line1 = "@2";
+    assert(process_a_instruction(&line1, table) == PROCESS_SUCCESS);
+    token_table_reset(table);
+    const Token *token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == INTEGER_LITERAL && token->value.integer == 2);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // ✅ Test: @32767 (max Hack value)
+    table = token_table_create();
+    const char *line2 = "@32767";
+    assert(process_a_instruction(&line2, table) == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == INTEGER_LITERAL && token->value.integer == 32767);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // ✅ Test: @LOOP (symbol)
+    table = token_table_create();
+    const char *line3 = "@LOOP";
+    assert(process_a_instruction(&line3, table) == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == SYMBOL && strcmp(token->value.symbol, "LOOP") == 0);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // ✅ Test: @LABEL1 with comment
+    table = token_table_create();
+    const char *line4 = "@LABEL1 // comment";
+    assert(process_a_instruction(&line4, table) == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == SYMBOL && strcmp(token->value.symbol, "LABEL1") == 0);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // 🚫 Test: @ (missing value)
+    table = token_table_create();
+    const char *line5 = "@";
+    assert(process_a_instruction(&line5, table) == PROCESS_INVALID);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // 🚫 Test: @5ABC (invalid integer)
+    table = token_table_create();
+    const char *line6 = "@5ABC";
+    assert(process_a_instruction(&line6, table) == PROCESS_INVALID);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // 🚫 Test: @32768 (out of range)
+    table = token_table_create();
+    const char *line7 = "@32768";
+    assert(process_a_instruction(&line7, table) == PROCESS_INVALID);  // Beyond Hack's 15-bit limit
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // 🚫 Test: @5/ (invalid character after number)
+    table = token_table_create();
+    const char *line8 = "@5/";
+    assert(process_a_instruction(&line8, table) == PROCESS_INVALID);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    printf("        ✅ test_process_a_instruction passed!\n");
+}
 
 
 
@@ -401,79 +558,4 @@ void test_process_label(void) {
 //     printf("✅ test_process_line passed!\n");
 // }
 //
-// void test_process_a_instruction(void) {
-//     TokenTable *table = token_table_create();
-//     Token *token;
-//
-//     printf("Running test_process_a_instruction...\n");
-//
-//     // ✅ Test: @2 -> OPERATOR OP_AT, INTEGER_LITERAL 2
-//     assert(process_line("@2", table) == PROCESS_SUCCESS);
-//     token_table_reset(table);
-//     token = token_table_next(table);
-//     assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
-//     token = token_table_next(table);
-//     assert(token != NULL && token->type == INTEGER_LITERAL && token->value.integer == 2);
-//     assert(token_table_next(table) == NULL);
-//     token_table_free(table);
-//
-//     // ✅ Test: @32767 (max Hack value)
-//     table = token_table_create();
-//     assert(process_line("@32767", table) == PROCESS_SUCCESS);
-//     token_table_reset(table);
-//     token = token_table_next(table);
-//     assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
-//     token = token_table_next(table);
-//     assert(token != NULL && token->type == INTEGER_LITERAL && token->value.integer == 32767);
-//     assert(token_table_next(table) == NULL);
-//     token_table_free(table);
-//
-//     // ✅ Test: @LOOP (symbol)
-//     table = token_table_create();
-//     assert(process_line("@LOOP", table) == PROCESS_SUCCESS);
-//     token_table_reset(table);
-//     token = token_table_next(table);
-//     assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
-//     token = token_table_next(table);
-//     assert(token != NULL && token->type == SYMBOL && strcmp(token->value.symbol, "LOOP") == 0);
-//     assert(token_table_next(table) == NULL);
-//     token_table_free(table);
-//
-//     // ✅ Test: @LABEL1 with comment
-//     table = token_table_create();
-//     assert(process_line("@LABEL1 // comment", table) == PROCESS_SUCCESS);
-//     token_table_reset(table);
-//     token = token_table_next(table);
-//     assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
-//     token = token_table_next(table);
-//     assert(token != NULL && token->type == SYMBOL && strcmp(token->value.symbol, "LABEL1") == 0);
-//     assert(token_table_next(table) == NULL);
-//     token_table_free(table);
-//
-//     // 🚫 Test: @ (missing value)
-//     table = token_table_create();
-//     assert(process_line("@", table) == PROCESS_INVALID);
-//     assert(token_table_next(table) == NULL);
-//     token_table_free(table);
-//
-//     // 🚫 Test: @5ABC (invalid integer)
-//     table = token_table_create();
-//     assert(process_line("@5ABC", table) == PROCESS_INVALID);
-//     assert(token_table_next(table) == NULL);
-//     token_table_free(table);
-//
-//     // 🚫 Test: @32768 (out of range)
-//     table = token_table_create();
-//     assert(process_line("@32768", table) == PROCESS_INVALID);  // Beyond Hack's 15-bit limit
-//     assert(token_table_next(table) == NULL);
-//     token_table_free(table);
-//
-//     // 🚫 Test: @5/ (invalid character after number)
-//     table = token_table_create();
-//     assert(process_line("@5/", table) == PROCESS_INVALID);
-//     assert(token_table_next(table) == NULL);
-//     token_table_free(table);
-//
-//     printf("    ✅ test_process_a_instruction passed!\n");
-// }
-//
+

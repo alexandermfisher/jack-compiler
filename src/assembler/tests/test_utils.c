@@ -12,10 +12,7 @@ void test_parse_arguments(void);
 
 
 int main(void) {
-    printf("Starting test_utils...\n");
     test_parse_arguments();
-    printf("All tests passed successfully.\n");
-    printf("Test completed.\n");
     return 0;
 }
 
@@ -103,5 +100,5 @@ void test_parse_arguments(void) {
     wait(&status);
     assert(WIFEXITED(status) && WEXITSTATUS(status) == EXIT_FAILURE);
 
-    printf("    ✅ test_parse_arguments passed!\n");
+    printf("\t✅ test_parse_arguments passed!\n");
 }

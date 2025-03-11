@@ -11,10 +11,7 @@
 void test_create_token(void);
 
 int main(void) {
-    printf("Starting test_token...\n");
     test_create_token();
-    printf("All tests passed successfully.\n");
-    printf("Test completed.\n");
     return 0;
 }
 
@@ -103,7 +100,7 @@ void test_create_token(void) {
     // Edge case: Passing an unrecognized token type
     assert(create_token(9999) == NULL);  // Assuming 9999 is invalid
 
-    printf("    ✅ test_create_token passed!\n");
+    printf("\t✅ test_create_token passed!\n");
 }
 
 

@@ -61,6 +61,7 @@ if [ $# -eq 1 ]; then
     echo "==> Building and running test: $1 ($BUILD_TYPE mode)"
     ninja -C build/"$BUILD_TYPE" "src/assembler/tests/test_$1" || { echo "Build failed!"; exit 1; }
     run_test "$TEST_EXEC"
+    echo "==> All tests passed!"
     exit 0
 fi
 
@@ -72,3 +73,4 @@ ninja -C build/"$BUILD_TYPE" || { echo "Build failed!"; exit 1; }
 for TEST in "${TEST_NAMES[@]}"; do
     run_test "$BUILD_DIR/test_$TEST"
 done
+echo "==> All tests passed!"

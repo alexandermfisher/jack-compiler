@@ -11,10 +11,8 @@ void test_symbol_table(void);
 void test_load_symbol_table(void);
 
 int main(void) {
-    printf("Starting test_symbol_table...\n");
     test_symbol_table();
     test_load_symbol_table();
-    printf("Test completed.\n");
     return 0;
 }
 
@@ -58,7 +56,7 @@ void test_symbol_table(void) {
     // Cleanup
     symbol_table_free(table);
 
-    printf("    ✅ test_symbol_table passed!\n");
+    printf("\t✅ test_symbol_table passed!\n");
 }
 
 void test_load_symbol_table(void) {
@@ -112,5 +110,5 @@ void test_load_symbol_table(void) {
     // Cleanup
     symbol_table_free(table);
 
-    printf("    ✅ test_load_symbol_table passed!\n");
+    printf("\t✅ test_load_symbol_table passed!\n");
 }

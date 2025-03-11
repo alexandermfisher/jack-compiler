@@ -19,7 +19,7 @@ ProcessStatus process_line(const char *line, TokenTable *token_table, SymbolTabl
     if (*line == '(') return process_label(&line, token_table, symbol_table, rom_address);
 
     // Check for A-instruction (@value)
-    // if (*line == '@') return process_a_instruction(line, token_table);
+    if (*line == '@') return process_a_instruction(&line, token_table);
 
     // TODO: Handle C-instructions...
 
@@ -152,18 +152,37 @@ ProcessStatus process_symbol(const char **line, char *buffer) {
     return (i > 0) ? PROCESS_SUCCESS : PROCESS_INVALID;
 }
 
+ProcessStatus process_integer_literal(const char **line, int *integer_literal) {
+    if (!line || !*line || !integer_literal) return PROCESS_ERROR;
 
+    if (!isdigit(**line)) return PROCESS_INVALID;
 
+    char number[6] = {0};  // Max "32767" + null terminator
+    int i = 0;
+    while (isdigit(**line) && i < 5) {
+        number[i++] = **line;
+        (*line)++;
+    }
+    number[i] = '\0';
 
+    // Ensure valid termination
+    if (!is_line_end_or_comment(*line)) {
+        return PROCESS_INVALID;
+    }
 
+    // Convert to int
+    char *end_ptr;
+    const long num = strtol(number, &end_ptr, 10);
+    if (*end_ptr != '\0' || num < 0 || num >= 32768) return PROCESS_INVALID;
+    *integer_literal = (int) num;
 
+    return PROCESS_SUCCESS;
+}
 
+ProcessStatus process_a_instruction(const char **line, TokenTable *token_table) {
+    if (!*line || !token_table) return PROCESS_ERROR;
 
-
-ProcessStatus process_a_instruction(const char *line, TokenTable *token_table) {
-    if (!line || !token_table) return PROCESS_ERROR;
-
-    if (*line != '@') return PROCESS_ERROR;
+    if (**line != '@') return PROCESS_ERROR;
 
     // Create '@' operator token
     Token *at_token = create_token(OPERATOR, OP_AT);
@@ -172,48 +191,45 @@ ProcessStatus process_a_instruction(const char *line, TokenTable *token_table) {
         return PROCESS_ERROR;
     }
 
-    line++;  // Move past '@'
+    (*line)++;  // Move past '@'
 
-    // Integer literal (e.g., @32767)
-    if (isdigit(*line)) {
-        char number[6] = {0};  // Max "32767" + null terminator
-        int i = 0;
-        while (isdigit(*line) && i < 5) number[i++] = *line++;
-        number[i] = '\0';
-
-        // Ensure valid termination: only allow EOL, space, newline, or valid comment start
-        if (*line == '\0' || *line == ' ' || *line == '\n' || (*line == '/' && *(line + 1) == '/')) {
-            const int num = strtol(number, NULL, 10);
-            Token *int_token = create_token(INTEGER_LITERAL, num);
-            if (!int_token || !token_table_add(token_table, int_token)) {
-                free_token(int_token);
-                return PROCESS_ERROR;
-            }
-            return PROCESS_SUCCESS;
+    // Process integer literal:
+    if (isdigit(**line)) {
+        int integer_literal = 0;
+        const ProcessStatus status = process_integer_literal(line, &integer_literal);
+        if (status != PROCESS_SUCCESS) return status;
+        Token *int_token = create_token(INTEGER_LITERAL, integer_literal);
+        if (!int_token || !token_table_add(token_table, int_token)) {
+            free_token(int_token);
+            return PROCESS_ERROR;
         }
-        return PROCESS_INVALID;  // Invalid case like @5ABC or @5/
+        return PROCESS_SUCCESS;
     }
 
-    // Symbol (e.g., @LOOP, @var)
-    if (isalpha(*line) || *line == '_' || *line == '.' || *line == '$' || *line == ':') {
-        char symbol[64] = {0};
-        int i = 0;
-        while ((isalnum(*line) || *line == '_' || *line == '.' || *line == '$' || *line == ':') && i < 63) {
-            symbol[i++] = *line++;
-        }
-        symbol[i] = '\0';  // Null-terminate
+    // Process symbol
+    char buffer[MAX_LABEL_LEN + 1] = {0};
+    const ProcessStatus status = process_symbol(line, buffer);
+    if (status != PROCESS_SUCCESS) return status;
 
-        // Ensure valid termination (EOL, space, newline, or comment start)
-        if (*line == '\0' || *line == ' ' || *line == '\n' || (*line == '/' && *(line + 1) == '/')) {
-            Token *sym_token = create_token(SYMBOL, symbol);
-            if (!sym_token || !token_table_add(token_table, sym_token)) {
-                free_token(sym_token);
-                return PROCESS_ERROR;
-            }
-            return PROCESS_SUCCESS;
-        }
+    // Tokenize symbol
+    Token *symbol = create_token(SYMBOL, buffer);
+    if (!symbol || !token_table_add(token_table, symbol)) {
+        free_token(symbol);
         return PROCESS_ERROR;
     }
+
+    // Ensure only whitespace or comments remain
+    if (!is_line_end_or_comment(*line)) {
+        return PROCESS_INVALID;
+    }
+
+    // Tokenize newline
+    Token *newline = create_token(NEWLINE, NULL);
+    if (!newline || !token_table_add(token_table, newline)) {
+        free_token(newline);
+        return PROCESS_ERROR;
+    }
+
     return PROCESS_SUCCESS;
 }
 

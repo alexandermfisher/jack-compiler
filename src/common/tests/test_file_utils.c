@@ -13,12 +13,9 @@ void test_is_valid_filepath(void);
 
 
 int main(void) {
-    printf("Starting test_file_utils...\n");
     test_has_extension();
     test_change_file_extension();
     test_is_valid_filepath();
-    printf("All tests passed successfully.\n");
-    printf("Test completed.\n");
     return 0;
 }
 
@@ -51,6 +48,8 @@ void test_has_extension(void) {
     // Test NULL values
     assert(has_extension(NULL, ".asm") == false);
     assert(has_extension("test.asm", NULL) == false);
+
+    printf("        ✅ test_has_extension passed!\n");
 }
 
 void test_change_file_extension(void) {
@@ -156,6 +155,8 @@ void test_change_file_extension(void) {
     strcpy(filepath, ".env");
     assert(change_file_extension(filepath, sizeof(filepath), ".bak") == true);
     assert(strcmp(filepath, ".env.bak") == 0);
+
+    printf("        ✅ test_change_file_extension passed!\n");
 }
 
 void test_is_valid_filepath(void) {
@@ -185,4 +186,6 @@ void test_is_valid_filepath(void) {
     memset(long_filename, 'a', PATH_MAX + 1);
     long_filename[PATH_MAX + 1] = '\0';
     assert(is_valid_filepath(long_filename) == false);
+
+    printf("        ✅ test_is_valid_filepath passed!\n");
 }

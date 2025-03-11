@@ -15,19 +15,23 @@ typedef enum {
     PROCESS_ERROR      // Critical failure (e.g., malloc failure)
 } ProcessStatus;
 
-
-ProcessStatus process_line(const char *line, TokenTable *token_table, SymbolTable *symbol_table, int *rom_address);
-
 const char *preprocess_line(const char *line);
-
-ProcessStatus process_label(const char **line, TokenTable *token_table, SymbolTable *symbol_table, int *rom_address);
-
-ProcessStatus process_symbol(const char **line, char *buffer);
 
 bool is_keyword(const char *symbol);
 
 bool is_line_end_or_comment(const char *line);
 
-ProcessStatus process_a_instruction(const char *line, TokenTable *token_table);
+ProcessStatus process_line(const char *line, TokenTable *token_table, SymbolTable *symbol_table, int *rom_address);
+
+ProcessStatus process_label(const char **line, TokenTable *token_table, SymbolTable *symbol_table, int *rom_address);
+
+ProcessStatus process_symbol(const char **line, char *buffer);
+
+ProcessStatus process_integer_literal(const char **line, int *integer_literal);
+
+ProcessStatus process_a_instruction(const char **line, TokenTable *token_table);
+
+
+
 
 #endif //LINE_PROCESSOR_H

@@ -7,10 +7,13 @@ A fully-fledged compiler would typically wrap everything into a single tool that
 
 TODO:
 - main:
-  make process_integer_literal 
-  make process_a_instruction
+  make process_c_instruction
+  check correct tokens in lex file
+
+  implement parser interface
 
 
+- may refactor end of instruction check to process_line (test may need adjusting)
 
 
 
