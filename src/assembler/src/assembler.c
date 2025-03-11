@@ -1,8 +1,6 @@
 #include "assembler.h"
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-
 #include "line_processor.h"
 #include "symbol_table.h"
 #include "token_table.h"
@@ -39,7 +37,6 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
         symbol_table_free(symbol_table);
         return 1;
     }
-
     char *line = NULL;
     size_t len = 0;
     int rom_address = 0;
@@ -48,8 +45,9 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
         // printf("%s", line);
         const int res = process_line(line, token_table, symbol_table, &rom_address);
         if (res != PROCESS_SUCCESS) {
-            // Syntax Error
-            if (res == PROCESS_INVALID) { fprintf(stderr, "%s:%d: syntax error: unable to process line - %s\n", source_filepath, line_num, line); }
+            if (res == PROCESS_INVALID) {
+                fprintf(stderr, "%s:%d: syntax error: unable to process line - %s\n", source_filepath, line_num, line);
+            }
 
             // Write token_table to tokens.lex
             token_table_write_to_file(token_lex_file, token_table);
@@ -75,11 +73,6 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
 
     token_table_free(token_table);
     symbol_table_free(symbol_table);
-
     return 0;
-}
-
-int lex_line(void) {
-    return 1;
 }
 
