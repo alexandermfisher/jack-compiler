@@ -141,17 +141,18 @@ Token *create_token(TokenType type, ...) {
             break;
         }
         case NEWLINE:
-        case INVALID:
+        case INVALID: {
             // No additional arguments expected for these cases
             token->value.symbol = NULL;
-        break;
-        default:
+            break;
+        }
+        default: {
             free(token);
-        token = NULL;
-        break;
+            token = NULL;
+            break;
+        }
     }
 
     va_end(args);
     return token;
 }
-

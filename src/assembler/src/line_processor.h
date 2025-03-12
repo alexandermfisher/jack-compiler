@@ -21,6 +21,11 @@ bool is_keyword(const char *symbol);
 
 bool is_line_end_or_comment(const char *line);
 
+bool is_valid_c_instruction_char(char c, const char valid_chars[], int n_valid_chars);
+
+void consume_whitespace(const char **line);
+
+
 ProcessStatus process_line(const char *line, TokenTable *token_table, SymbolTable *symbol_table, int *rom_address);
 
 ProcessStatus process_label(const char **line, TokenTable *token_table, SymbolTable *symbol_table, int *rom_address);
@@ -31,6 +36,7 @@ ProcessStatus process_integer_literal(const char **line, int *integer_literal);
 
 ProcessStatus process_a_instruction(const char **line, TokenTable *token_table);
 
+ProcessStatus process_c_instruction(const char **line, TokenTable *token_table);
 
 
 

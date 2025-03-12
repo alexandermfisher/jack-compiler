@@ -9,7 +9,7 @@ TODO:
 - main:
   make process_c_instruction
   check correct tokens in lex file
-
+  change preprocess line for consume
   implement parser interface
 
 

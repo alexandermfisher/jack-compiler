@@ -18,9 +18,13 @@ void test_process_symbol(void);
 void test_process_label(void);
 void test_process_integer_literal(void);
 void test_process_a_instruction(void);
+void test_process_c_instruction(void);
 
 void test_process_line(void);
 
+// Helper macro to simplify token checks
+#define CHECK_TOKEN(token, expected_type, expected_value) \
+assert(token != NULL && token->type == expected_type && token->value.keyword == expected_value);
 
 
 int main(void) {
@@ -32,6 +36,7 @@ int main(void) {
     test_process_label();
     test_process_integer_literal();
     test_process_a_instruction();
+    test_process_c_instruction();
     //test_process_line();
 
 
@@ -109,17 +114,17 @@ void test_process_symbol(void) {
     const char *line = NULL;
     char buffer[MAX_LABEL_LEN + 1];
 
-    // ✅ Test: Valid symbol "LOOP"
+    // ✅ Test: Valid symbol "LOOPrest"
     line = "LOOP rest";
     assert(process_symbol(&line, buffer) == PROCESS_SUCCESS);
-    assert(strcmp(buffer, "LOOP") == 0);
-    assert(strcmp(line, " rest") == 0);  // Line pointer should now be at " rest"
+    assert(strcmp(buffer, "LOOPrest") == 0);
+    assert(strcmp(line, "\0") == 0);
 
     // ✅ Test: Valid symbol with special characters "_my.label$"
     line = "_my.label$ more";
     assert(process_symbol(&line, buffer) == PROCESS_SUCCESS);
-    assert(strcmp(buffer, "_my.label$") == 0);
-    assert(strcmp(line, " more") == 0);
+    assert(strcmp(buffer, "_my.label$more") == 0);
+    assert(strcmp(line, "\0") == 0);
 
     // ✅ Test: Reads valid portion before encountering an invalid character ('@')
     line = "var@name";
@@ -137,7 +142,13 @@ void test_process_symbol(void) {
     line = "Symbol1 ";
     assert(process_symbol(&line, buffer) == PROCESS_SUCCESS);
     assert(strcmp(buffer, "Symbol1") == 0);
-    assert(strcmp(line, " ") == 0);
+    assert(strcmp(line, "\0") == 0);
+
+    // ✅ Test: Symbol can start with leading space
+    line = "   varName";
+    assert(process_symbol(&line, buffer) == PROCESS_SUCCESS);
+    assert(strcmp(buffer, "varName") == 0);
+    assert(strcmp(line, "\0") == 0);
 
     // ❌ Test: Symbol cannot start with a digit
     line = "123abc";
@@ -149,10 +160,6 @@ void test_process_symbol(void) {
 
     // ❌ Test: Symbol cannot start with an operator
     line = "+variable";
-    assert(process_symbol(&line, buffer) == PROCESS_INVALID);
-
-    // ❌ Test: Symbol cannot start with a space
-    line = " varName";
     assert(process_symbol(&line, buffer) == PROCESS_INVALID);
 
     // ❌ Test: Symbol cannot start with a parenthesis
@@ -245,9 +252,12 @@ void test_process_label(void) {
     assert(symbol_table_get_address(symbol_table, "LABEL") == 2);
     assert(rom_address == 4);
 
-    // ❌ Test: Label with spaces before and after
+    // ✅ Test: Label with spaces before and after
     const char *line12 = "( JUMP )";
-    assert(process_label(&line12, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+    assert(process_label(&line12, token_table, symbol_table, &rom_address) == PROCESS_SUCCESS);
+    assert(symbol_table_contains(symbol_table, "JUMP"));
+    assert(symbol_table_get_address(symbol_table, "JUMP") == 4);
+    assert(rom_address == 5);
 
     // ❌ Test: Label with leading spaces
     const char *line13 = "   (LABEL)";
@@ -257,9 +267,12 @@ void test_process_label(void) {
     const char *line14 = "   (LABEL)   ";
     assert(process_label(&line14, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
 
-    // ❌ Test: Label with spaces in the middle (multiple words)
+    // ✅ Test: Label with spaces in the middle (multiple words should be treated as one)
     const char *line15 = "(MULTI WORD)";
-    assert(process_label(&line15, token_table, symbol_table, &rom_address) == PROCESS_INVALID);
+    assert(process_label(&line15, token_table, symbol_table, &rom_address) == PROCESS_SUCCESS);
+    assert(symbol_table_contains(symbol_table, "MULTIWORD"));  // Spaces should be ignored
+    assert(symbol_table_get_address(symbol_table, "MULTIWORD") == 5);
+    assert(rom_address == 6);
 
     // ❌ Test: Label cannot start with a digit
     const char *line16 = "(9symbol)";
@@ -356,6 +369,8 @@ void test_process_a_instruction(void) {
     assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
     token = token_table_next(table);
     assert(token != NULL && token->type == INTEGER_LITERAL && token->value.integer == 2);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
     assert(token_table_next(table) == NULL);
     token_table_free(table);
 
@@ -368,6 +383,8 @@ void test_process_a_instruction(void) {
     assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
     token = token_table_next(table);
     assert(token != NULL && token->type == INTEGER_LITERAL && token->value.integer == 32767);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
     assert(token_table_next(table) == NULL);
     token_table_free(table);
 
@@ -420,6 +437,7 @@ void test_process_a_instruction(void) {
     assert(token_table_next(table) == NULL);
     token_table_free(table);
 
+
     // 🚫 Test: @5/ (invalid character after number)
     table = token_table_create();
     const char *line8 = "@5/";
@@ -427,9 +445,248 @@ void test_process_a_instruction(void) {
     assert(token_table_next(table) == NULL);
     token_table_free(table);
 
+    // ✅ Test: @  123 (whitespace after @)
+    table = token_table_create();
+    const char *line9 = "@  123";
+    assert(process_a_instruction(&line9, table) == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == INTEGER_LITERAL && token->value.integer == 123);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // ✅ Test: @LABEL   (whitespace after symbol)
+    table = token_table_create();
+    const char *line10 = "@LABEL   ";
+    assert(process_a_instruction(&line10, table) == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == SYMBOL && strcmp(token->value.symbol, "LABEL") == 0);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // ✅ Test: @   LOOP (whitespace before symbol)
+    table = token_table_create();
+    const char *line11 = "@   LOOP";
+    assert(process_a_instruction(&line11, table) == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == SYMBOL && strcmp(token->value.symbol, "LOOP") == 0);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // ✅ Test: @MIX   ED_SYM (whitespace inside symbol)
+    table = token_table_create();
+    const char *line12 = "@MIX   ED_SYM";
+    assert(process_a_instruction(&line12, table) == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == SYMBOL && strcmp(token->value.symbol, "MIXED_SYM") == 0);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // 🚫 Test: @   (only @ with spaces)
+    table = token_table_create();
+    const char *line13 = "@   ";
+    assert(process_a_instruction(&line13, table) == PROCESS_INVALID);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // 🚫 Test: @ 5ABC (invalid integer, must not contain letters)
+    table = token_table_create();
+    const char *line14 = "@ 5ABC";
+    assert(process_a_instruction(&line14, table) == PROCESS_INVALID);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // 🚫 Test: @  0123 (leading zero is invalid)
+    table = token_table_create();
+    const char *line15 = "@  0123";
+    assert(process_a_instruction(&line15, table) == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_AT);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == INTEGER_LITERAL && token->value.integer == 123);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+
     printf("        ✅ test_process_a_instruction passed!\n");
 }
 
+void test_process_c_instruction(void) {
+    TokenTable *table;
+    ProcessStatus status;
+    Token *token;
+
+    // ✅ Test: Simple instruction "D=A"
+    table = token_table_create();
+    const char *line1 = "D=A";
+    status = process_c_instruction(&line1, table);
+    assert(status == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_D);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_ASSIGN);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_A);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // ✅ Test: Instruction with extra whitespace " D  =   M "
+    table = token_table_create();
+    const char *line2 = " D  =   M ";
+    status = process_c_instruction(&line2, table);
+    assert(status == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_D);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_ASSIGN);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_M);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // ✅ Test: C-instruction with computation "D=D+1"
+    table = token_table_create();
+    const char *line3 = "D=D+1";
+    status = process_c_instruction(&line3, table);
+    assert(status == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_D);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_ASSIGN);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_D);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_ADD);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == INTEGER_LITERAL && token->value.integer == 1);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // ✅ Test: C-instruction with jump "D;JGT"
+    table = token_table_create();
+    const char *line4 = "D;JGT";
+    status = process_c_instruction(&line4, table);
+    assert(status == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_D);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == SEPARATOR && token->value.separator == SEP_SEMICOLON);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_JGT);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // ✅ Test: C-instruction with computation and jump "A=D+1;JMP"
+    table = token_table_create();
+    const char *line5 = "A=D+1;JMP";
+    status = process_c_instruction(&line5, table);
+    assert(status == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_A);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_ASSIGN);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_D);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_ADD);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == INTEGER_LITERAL && token->value.integer == 1);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == SEPARATOR && token->value.separator == SEP_SEMICOLON);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_JMP);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // ✅ Test: Instruction with extra spaces before and after "   M   =   A   ;   JNE   "
+    table = token_table_create();
+    const char *line6 = "   M   =   A   ;   JNE   ";
+    status = process_c_instruction(&line6, table);
+    assert(status == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_M);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_ASSIGN);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_A);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == SEPARATOR && token->value.separator == SEP_SEMICOLON);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_JNE);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    // ❌ Test: Invalid instruction "X=Y"
+    table = token_table_create();
+    const char *line7 = "X=Y";
+    status = process_c_instruction(&line7, table);
+    assert(status == PROCESS_INVALID);
+    token_table_free(table);
+
+    // ❌ Test: Invalid jump mnemonic "D;XYZ"
+    table = token_table_create();
+    const char *line8 = "D;XYZ";
+    status = process_c_instruction(&line8, table);
+    assert(status == PROCESS_INVALID);
+    token_table_free(table);
+
+    // ✅ Test: C-instruction with incomplete RHS "D="
+    table = token_table_create();
+    const char *line9 = "D=";
+    status = process_c_instruction(&line9, table);
+    assert(status == PROCESS_SUCCESS);
+    token_table_reset(table);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == KEYWORD && token->value.keyword == KW_D);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == OPERATOR && token->value.operator == OP_ASSIGN);
+    token = token_table_next(table);
+    assert(token != NULL && token->type == NEWLINE);
+    assert(token_table_next(table) == NULL);
+    token_table_free(table);
+
+    printf("        ✅ test_process_c_instruction passed!\n");
+}
 
 
 //
