@@ -42,7 +42,7 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
     int rom_address = 0;
     int line_num = 1;
     while ((getline(&line, &len, source_asm)) != -1) {
-        // printf("%s", line);
+        printf("%s", line);
         const int res = process_line(line, token_table, symbol_table, &rom_address);
         if (res != PROCESS_SUCCESS) {
             if (res == PROCESS_INVALID) {

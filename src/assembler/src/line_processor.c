@@ -12,8 +12,8 @@ ProcessStatus process_line(const char *line, TokenTable *token_table, SymbolTabl
     if (!line || !token_table) return PROCESS_ERROR;
 
     // Trim leading whitespace (Safe to ignore empty/comment line)
-    line = preprocess_line(line);
-    if (!line) return PROCESS_SUCCESS;
+    consume_whitespace(&line);
+    if (is_line_end_or_comment(line)) return PROCESS_SUCCESS;
 
     // Check for L-instruction (Labels)
     if (*line == '(') return process_label(&line, token_table, symbol_table, rom_address);
@@ -21,7 +21,7 @@ ProcessStatus process_line(const char *line, TokenTable *token_table, SymbolTabl
     // Check for A-instruction (@value)
     if (*line == '@') return process_a_instruction(&line, token_table);
 
-    // TODO: Handle C-instructions...
+    process_c_instruction(&line, token_table);
 
     return PROCESS_SUCCESS;
 }
