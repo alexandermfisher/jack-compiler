@@ -21,6 +21,9 @@ bool token_table_add(TokenTable *table, Token *token);
 // Get the next token (iterator-style)
 Token *token_table_next(TokenTable *table);
 
+// Get the next token without incrementing current ptr
+Token *token_table_peek(TokenTable *table);
+
 // Reset the iterator to the start
 void token_table_reset(TokenTable *table);
 

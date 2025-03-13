@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "line_processor.h"
+#include "parser.h"
 #include "symbol_table.h"
 #include "token_table.h"
 
@@ -62,10 +63,26 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
         line_num++;
     }
     if (line) free(line);
+    token_table_reset(token_table);
 
     // Initialise Parser
+    Parser *parser = parser_create(token_table, symbol_table);
+    if (!parser) {
+        token_table_write_to_file(token_lex_file, token_table);
+        fclose(token_lex_file);
+        symbol_table_free(symbol_table);
+        return 1;
+    }
 
     // Second Pass - code generation
+    while (parser_has_more_commands(parser)) {
+        advance(parser);
+    }
+
+
+
+
+
 
     // Write token_table to tokens.lex
     token_table_write_to_file(token_lex_file, token_table);
@@ -73,6 +90,7 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
 
     token_table_free(token_table);
     symbol_table_free(symbol_table);
+    parser_free(parser);
     return 0;
 }
 

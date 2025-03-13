@@ -265,21 +265,7 @@ ProcessStatus process_c_instruction(const char **line, TokenTable *token_table) 
     consume_whitespace(line);
     const char *valid_chars = "-+&|!=;01ADMJGTENLQP";
     Token *token = NULL;
-    while (strchr(valid_chars, **line)) {
-        // if (isspace(**line)) {
-        //     consume_whitespace(line);
-        //     continue;
-        // }
-        if (is_line_end_or_comment(*line)) {
-            // Tokenize newline
-            Token *newline = create_token(NEWLINE, NULL);
-            if (!newline || !token_table_add(token_table, newline)) {
-                free_token(newline);
-                return PROCESS_ERROR;
-            }
-            return PROCESS_SUCCESS;
-        }
-
+    while (strchr(valid_chars, **line) && **line != '\0') {
         // Process individual characters:
         switch (**line) {
             case '-':
@@ -332,6 +318,17 @@ ProcessStatus process_c_instruction(const char **line, TokenTable *token_table) 
         }
         (*line)++;
         consume_whitespace(line);
+    }
+
+    // Handle no JMP statement
+    if (is_line_end_or_comment(*line)) {
+        // Tokenize newline
+        Token *newline = create_token(NEWLINE, NULL);
+        if (!newline || !token_table_add(token_table, newline)) {
+            free_token(newline);
+            return PROCESS_ERROR;
+        }
+        return PROCESS_SUCCESS;
     }
 
     // Process JMP

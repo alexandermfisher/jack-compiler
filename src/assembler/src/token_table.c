@@ -59,6 +59,13 @@ Token *token_table_next(TokenTable *table) {
     return token;
 }
 
+Token *token_table_peek(TokenTable *table) {
+    if (!table || !table->current) return NULL;
+
+    Token *token = table->current->token;
+    return token;
+}
+
 void token_table_reset(TokenTable *table) {
     if (table) table->current = table->head;
 }
