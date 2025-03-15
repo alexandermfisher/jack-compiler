@@ -11,6 +11,7 @@ typedef enum {
     INVALID_INSTRUCTION
 } InstructionType;
 
+
 // Enum for DEST field
 typedef enum {
     NULL_DEST = 0,                  // No destination (e.g., just comp;jump)
@@ -23,8 +24,10 @@ typedef enum {
     DEST_AMD  = DEST_A | DEST_M | DEST_D  // 0111 -> AMD
 } Dest;
 
+
 // Enum for JUMP field
 typedef enum {NO_JUMP, JGT, JEQ, JGE, JLT, JNE, JLE, JMP} Jump;
+
 
 // Enum for COMP field
 typedef enum {
@@ -34,6 +37,7 @@ typedef enum {
     COMP_D_OR_A, COMP_M, COMP_NOT_M, COMP_MINUS_M, COMP_M_PLUS_1, COMP_M_MINUS_1,
     COMP_D_PLUS_M, COMP_D_MINUS_M, COMP_M_MINUS_D, COMP_D_AND_M, COMP_D_OR_M
 } Comp;
+
 
 // Instruction structure
 typedef struct {
@@ -46,6 +50,7 @@ typedef struct {
     Comp comp;
     Jump jump;
 } Instruction;
+
 
 // Function to encode COMP field into binary
 inline const char* encode_comp(const Comp comp) {
@@ -82,21 +87,20 @@ inline const char* encode_comp(const Comp comp) {
     }
 }
 
-// TODO : update to reflect new dest enum
 // // Function to encode DEST field into binary
-// inline const char* encode_dest(const Dest dest) {
-//     switch (dest) {
-//         case NULL_DEST: return "000";
-//         case M: return "001";
-//         case D: return "010";
-//         case MD: return "011";
-//         case A: return "100";
-//         case AM: return "101";
-//         case AD: return "110";
-//         case AMD: return "111";
-//         default: return "000";  // Invalid case
-//     }
-// }
+inline const char* encode_dest(const Dest dest) {
+    switch (dest) {
+        case NULL_DEST: return "000";
+        case DEST_M: return "001";
+        case DEST_D: return "010";
+        case DEST_MD: return "011";
+        case DEST_A: return "100";
+        case DEST_AM: return "101";
+        case DEST_AD: return "110";
+        case DEST_AMD: return "111";
+        default: return "000";  // Invalid case
+    }
+}
 
 // Function to encode JUMP field into binary
 inline const char* encode_jump(const Jump jump) {
