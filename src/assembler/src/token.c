@@ -8,55 +8,6 @@
 #include <string.h>
 #include <stdio.h>
 
-const char *token_type_to_str(const TokenType type) {
-    switch (type) {
-        case SYMBOL: return "SYMBOL";
-        case KEYWORD: return "KEYWORD";
-        case INTEGER_LITERAL: return "INTEGER_LITERAL";
-        case OPERATOR: return "OPERATOR";
-        case SEPARATOR: return "SEPARATOR";
-        case NEWLINE: return "NEWLINE";
-        default: return "INVALID";
-    }
-}
-
-const char *keyword_to_str(const Keyword keyword) {
-    switch (keyword) {
-        case KW_A: return "A";
-        case KW_D: return "D";
-        case KW_M: return "M";
-        case KW_JGT: return "JGT";
-        case KW_JEQ: return "JEQ";
-        case KW_JGE: return "JGE";
-        case KW_JLT: return "JLT";
-        case KW_JNE: return "JNE";
-        case KW_JLE: return "JLE";
-        case KW_JMP: return "JMP";
-        default: return "UNKNOWN_KEYWORD";
-    }
-}
-
-const char *operator_to_str(const Operator op) {
-    switch (op) {
-        case OP_AT: return "@";
-        case OP_ASSIGN: return "=";
-        case OP_ADD: return "+";
-        case OP_SUB: return "-";
-        case OP_AND: return "&";
-        case OP_OR: return "|";
-        case OP_NOT: return "!";
-        default: return "UNKNOWN_OPERATOR";
-    }
-}
-
-const char *separator_to_str(const Separator sep) {
-    switch (sep) {
-        case SEP_SEMICOLON: return ";";
-        case SEP_LPAREN: return "(";
-        case SEP_RPAREN: return ")";
-        default: return "UNKNOWN_SEPARATOR";
-    }
-}
 
 void free_token(Token *token) {
     if (!token) return;

@@ -1,78 +1,104 @@
 //
 // Created by alexanderfisher on 08/03/25.
 //
-
 #ifndef TOKEN_H
 #define TOKEN_H
 
-
-// Token Type:
+// Enum representing different token types
 typedef enum {
-    SYMBOL,            // Labels, variables, and predefined symbols (e.g. LOOP, i, count, SP, THAT)
-    KEYWORD,           // Hack instruction keywords (e.g. A, D, M, JGT, JMP)
-    INTEGER_LITERAL,   // Numeric constants (e.g. 0, 1, 15, 32767)
-    OPERATOR,          // Operators used in computation (e.g. @ =, +, -, !, &, |)
-    SEPARATOR,         // Separators in instructions (e.g. ;, (, ))
-    NEWLINE,           // End of a Hack instruction
-    INVALID            // Invalid token
+    // A-instruction tokens
+    TOKEN_AT,               // @
+    TOKEN_SYMBOL,           // Variable or label reference (e.g., @var)
+    TOKEN_INTEGER,          // Numeric address (e.g., @10)
+
+    // L-instruction tokens
+    TOKEN_LPAREN,           // (
+    TOKEN_RPAREN,           // )
+
+    // C-instruction tokens
+    // Destinations
+    TOKEN_DEST_M,           // M=
+    TOKEN_DEST_D,           // D=
+    TOKEN_DEST_MD,          // MD=
+    TOKEN_DEST_A,           // A=
+    TOKEN_DEST_AM,          // AM=
+    TOKEN_DEST_AD,          // AD=
+    TOKEN_DEST_AMD,         // AMD=
+
+    // Computation mnemonics
+    TOKEN_COMP_0,           // 0
+    TOKEN_COMP_1,           // 1
+    TOKEN_COMP_NEG1,        // -1
+    TOKEN_COMP_D,           // D
+    TOKEN_COMP_A,           // A
+    TOKEN_COMP_M,           // M
+    TOKEN_COMP_NOT_D,       // !D
+    TOKEN_COMP_NOT_A,       // !A
+    TOKEN_COMP_NOT_M,       // !M
+    TOKEN_COMP_NEG_D,       // -D
+    TOKEN_COMP_NEG_A,       // -A
+    TOKEN_COMP_NEG_M,       // -M
+    TOKEN_COMP_DPLUS1,      // D+1
+    TOKEN_COMP_APLUS1,      // A+1
+    TOKEN_COMP_MPLUS1,      // M+1
+    TOKEN_COMP_DMINUS1,     // D-1
+    TOKEN_COMP_AMINUS1,     // A-1
+    TOKEN_COMP_MMINUS1,     // M-1
+    TOKEN_COMP_DPLUSA,      // D+A
+    TOKEN_COMP_DPLUSM,      // D+M
+    TOKEN_COMP_DMINUSA,     // D-A
+    TOKEN_COMP_DMINUSM,     // D-M
+    TOKEN_COMP_AMINUSD,     // A-D
+    TOKEN_COMP_MMINUSD,     // M-D
+    TOKEN_COMP_DANDA,       // D&A
+    TOKEN_COMP_DANDM,       // D&M
+    TOKEN_COMP_DORA,        // D|A
+    TOKEN_COMP_DORM,        // D|M
+
+    // Jump mnemonics
+    TOKEN_JUMP_JGT,         // ;JGT
+    TOKEN_JUMP_JEQ,         // ;JEQ
+    TOKEN_JUMP_JGE,         // ;JGE
+    TOKEN_JUMP_JLT,         // ;JLT
+    TOKEN_JUMP_JNE,         // ;JNE
+    TOKEN_JUMP_JLE,         // ;JLE
+    TOKEN_JUMP_JMP,         // ;JMP
+
+    // Separators
+    TOKEN_EQUALS,           // =
+    TOKEN_SEMICOLON,        // ;
+
+    // End-of-file or invalid token or newline
+    TOKEN_EOF,              // End of file
+    TOKEN_INVALID,          // Unrecognized token
+    NEWLINE                 // Newline
 } TokenType;
 
-typedef enum {
-    KW_A,               // 'A' register (Address register)
-    KW_D,               // 'D' register (Data register)
-    KW_M,               // 'M' register (RAM[A], memory access)
-    KW_JGT,             // Jump if greater than zero
-    KW_JEQ,             // Jump if equal to zero
-    KW_JGE,             // Jump if greater than or equal to zero
-    KW_JLT,             // Jump if less than zero
-    KW_JNE,             // Jump if not equal to zero
-    KW_JLE,             // Jump if less than or equal to zero
-    KW_JMP              // Unconditional jump
-} Keyword;
 
-typedef enum {
-    OP_AT,              // '@'  (A-instruction prefix: e.g., @100, @LOOP)
-    OP_ASSIGN,          // '='  (Assignment in C-instruction: e.g., D=M+1)
-    OP_ADD,             // '+'  (Addition: e.g., D=A+1)
-    OP_SUB,             // '-'  (Subtraction/Negation: e.g., D=D-1, M=-1)
-    OP_NOT,             // '!'  (Bitwise NOT: e.g., D=!A)
-    OP_AND,             // '&'  (Bitwise AND: e.g., D=D&A)
-    OP_OR               // '|'  (Bitwise OR: e.g., D=D|M)
-} Operator;
-
-typedef enum {
-    SEP_SEMICOLON,  // ';' (Separates `comp` and `jump` in C-instructions: e.g., `D;JGT`)
-    SEP_LPAREN,     // '('  (Label declaration start: e.g., `(LOOP)`)
-    SEP_RPAREN     // ')'  (Label declaration end)
-} Separator;
-
-
-// Token Data:
+// Union to store only necessary values
 typedef union {
-    Keyword keyword;      // Stores a Hack keyword (A, D, M, JGT, etc.)
-    Operator operator;    // Stores an operator (@ =, +, -, &, |, !)
-    Separator separator;  // Stores a separator (;, (, ))
-    int integer;          // Stores an integer literal (e.g., 0, 1, 15, 32767)
-    char *symbol;         // Stores a symbol (e.g., LOOP, count, variable names)
-} TokenData;
+    int integer_value;    // Stores an integer literal (e.g., @10)
+    char *symbol_value;   // Stores a symbol (e.g., LOOP, count, var)
+} TokenValue;
 
-// Token
-typedef struct Token {
+
+// Token structure
+typedef struct {
     TokenType type;
-    TokenData value;
+    TokenValue value;  // Only used for TOKEN_SYMBOL and TOKEN_INTEGER
 } Token;
 
-// Mapping enums to human-readable strings:
-const char *token_type_to_str(TokenType type);
-const char *keyword_to_str(Keyword keyword);
-const char *operator_to_str(Operator op);
-const char *separator_to_str(Separator sep);
 
 // Token *create_token(TokenType type, void *value);
 Token *create_token(TokenType type, ...);
+
+
 void free_token(Token *token);
+
+
 char *token_to_str(const Token *token);
 
+// TODO token to string
 
 
 #endif //TOKEN_H
