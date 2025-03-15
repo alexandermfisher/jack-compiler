@@ -16,7 +16,6 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
     // Create and initialise token table, and symbol table
     TokenTable *token_table = token_table_create();
     if (!token_table) return 1;
-
     SymbolTable *symbol_table = symbol_table_create();
     if (!symbol_table) {
         token_table_free(token_table);
@@ -43,18 +42,17 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
     int rom_address = 0;
     int line_num = 1;
     while (getline(&line, &len, source_asm) != -1) {
-        printf("%s", line);
+        // printf("%s", line);
+        // printf("\n");
         const int res = process_line(line, token_table, symbol_table, &rom_address);
         if (res != PROCESS_SUCCESS) {
             if (res == PROCESS_INVALID) {
                 fprintf(stderr, "%s:%d: syntax error: unable to process line - %s\n", source_filepath, line_num, line);
             }
 
-            // Write token_table to tokens.lex
+            // Write token_table to tokens.lex and cleanup
             token_table_write_to_file(token_lex_file, token_table);
             fclose(token_lex_file);
-
-            // Free tables
             token_table_free(token_table);
             symbol_table_free(symbol_table);
             free(line);
@@ -64,6 +62,7 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
     }
     if (line) free(line);
     token_table_reset(token_table);
+
 
     // Initialise Parser
     Parser *parser = parser_create(token_table, symbol_table);
@@ -76,18 +75,14 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
 
     // Second Pass - code generation
     while (parser_has_more_commands(parser)) {
-        advance(parser);
+        if (!advance(parser)) break;
     }
-
-
-
 
 
 
     // Write token_table to tokens.lex
     token_table_write_to_file(token_lex_file, token_table);
     fclose(token_lex_file);
-
     token_table_free(token_table);
     symbol_table_free(symbol_table);
     parser_free(parser);

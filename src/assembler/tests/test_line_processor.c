@@ -11,7 +11,6 @@
 #include <config.h>
 
 
-void test_preprocess_line(void);
 void test_is_keyword(void);
 void test_is_line_end_or_comment(void);
 void test_process_symbol(void);
@@ -28,7 +27,6 @@ assert(token != NULL && token->type == expected_type && token->value.keyword == 
 
 
 int main(void) {
-    test_preprocess_line();
     test_is_keyword();
     test_is_line_end_or_comment();
     test_process_symbol();
@@ -41,33 +39,6 @@ int main(void) {
     return 0;
 }
 
-
-void test_preprocess_line(void) {
-    const struct {
-        const char *input;
-        const char *expected_output;
-    } test_cases[] = {
-        {"     D=M     // this is comment.", "D=M     // this is comment."},
-        {"   // This whole line is a comment", NULL},
-        {"A=D+M  ", "A=D+M  "},
-        {"      ", NULL},
-        {"//OnlyComment", NULL},
-        {"@123  // Load 123", "@123  // Load 123"}
-    };
-
-    const size_t num_tests = sizeof(test_cases) / sizeof(test_cases[0]);
-    for (size_t i = 0; i < num_tests; i++) {
-        const char *processed = preprocess_line(test_cases[i].input);
-        if (test_cases[i].expected_output == NULL) {
-            assert(processed == NULL);
-        } else {
-            assert(processed != NULL);
-            assert(strcmp(processed, test_cases[i].expected_output) == 0);
-        }
-    }
-
-    printf("\t✅ test_preprocess_line passed!\n");
-}
 
 void test_is_keyword(void) {
 

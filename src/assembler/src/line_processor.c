@@ -26,15 +26,6 @@ ProcessStatus process_line(const char *line, TokenTable *token_table, SymbolTabl
     return PROCESS_SUCCESS;
 }
 
-const char *preprocess_line(const char *line) {
-    // Skip leading whitespace
-    while (*line == ' ' || *line == '\t') line++;
-    // Skip empty lines and comments
-    if (*line == '\0' || strncmp(line, "//", 2) == 0) return NULL;
-
-    return line;
-}
-
 bool is_keyword(const char *symbol) {
     static const char *keywords[] = {
         "A", "M", "D", "AMD", "AD", "MD", "AM", "JMP", "JEQ", "JGT", "JGE",
@@ -77,7 +68,6 @@ bool is_valid_c_instruction_char(const char c, const char valid_chars[], const i
     }
     return false;
 }
-
 
 ProcessStatus process_label(const char **line, TokenTable *token_table, SymbolTable *symbol_table, int *rom_address) {
     if (!*line || !token_table || !symbol_table || !rom_address) return PROCESS_ERROR;
