@@ -34,7 +34,7 @@ typedef enum {
  *         - PROCESS_INVALID: Syntax error detected.
  *         - PROCESS_ERROR:   Critical failure (e.g., memory allocation failure).
  */
-ProcessStatus lex_line(const char *line, ssize_t read, TokenTable *token_table, SymbolTable *symbol_table, const int *rom_address);
+ProcessStatus lex_line(char *line, ssize_t read, TokenTable *token_table, SymbolTable *symbol_table, int *rom_address);
 
 
 

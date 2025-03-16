@@ -17,6 +17,7 @@ typedef enum {
 
     // C-instruction tokens
     // Destinations
+    TOKEN_DEST_NULL,        // null
     TOKEN_DEST_M,           // M=
     TOKEN_DEST_D,           // D=
     TOKEN_DEST_MD,          // MD=
@@ -56,6 +57,7 @@ typedef enum {
     TOKEN_COMP_DORM,        // D|M
 
     // Jump mnemonics
+    TOKEN_JUMP_NULL,        // null
     TOKEN_JUMP_JGT,         // ;JGT
     TOKEN_JUMP_JEQ,         // ;JEQ
     TOKEN_JUMP_JGE,         // ;JGE
@@ -97,8 +99,5 @@ void free_token(Token *token);
 
 
 char *token_to_str(const Token *token);
-
-// TODO token to string
-
 
 #endif //TOKEN_H

@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <symbol_table.h>
-#include "config.h"
 
 
 void test_symbol_table(void);

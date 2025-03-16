@@ -7,8 +7,10 @@ A fully-fledged compiler would typically wrap everything into a single tool that
 
 TODO:
 - main:
-  implement parser interface (finish other functions)
-  fix encode inline functions in header
+  function briefs
+  test header functions 
+  integration tests
+  readme
 
 
 

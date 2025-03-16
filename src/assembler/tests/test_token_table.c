@@ -19,9 +19,9 @@ void test_token_table(void) {
     assert(table != NULL);
 
     // Create tokens
-    Token *token1 = create_token(SYMBOL, "FIRST");
-    Token *token2 = create_token(SYMBOL, "SECOND");
-    Token *token3 = create_token(SYMBOL, "THIRD");
+    Token *token1 = create_token(TOKEN_SYMBOL, "FIRST");
+    Token *token2 = create_token(TOKEN_SYMBOL, "SECOND");
+    Token *token3 = create_token(TOKEN_SYMBOL, "THIRD");
 
     // Ensure tokens are created successfully
     assert(token1 != NULL);

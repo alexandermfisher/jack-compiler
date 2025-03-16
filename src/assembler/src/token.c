@@ -18,7 +18,7 @@ void free_token(Token *token) {
 }
 
 // Creates token
-Token *create_token(const TokenType type, ...) {
+Token *create_token(TokenType type, ...) {
     Token *token = malloc(sizeof(Token));
     if (!token) return NULL;
 
@@ -79,6 +79,9 @@ char *token_to_str(const Token *token) {
             break;
 
         // Destinations
+        case TOKEN_DEST_NULL:
+            asprintf(&result, "TOKEN_DEST NULL");
+            break;
         case TOKEN_DEST_M:
             asprintf(&result, "TOKEN_DEST M");
             break;
@@ -188,6 +191,9 @@ char *token_to_str(const Token *token) {
             break;
 
         // Jump mnemonics
+        case TOKEN_JUMP_NULL:
+            asprintf(&result, "TOKEN_JUMP NULL");
+            break;
         case TOKEN_JUMP_JGT:
             asprintf(&result, "TOKEN_JUMP JGT");
             break;

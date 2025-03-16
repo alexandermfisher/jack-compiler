@@ -22,4 +22,4 @@ bool parser_has_more_commands(Parser *parser);
 
 bool advance(Parser *parser);
 
-#endif
+#endif //PARSER_H

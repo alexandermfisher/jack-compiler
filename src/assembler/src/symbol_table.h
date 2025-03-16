@@ -5,6 +5,8 @@
 #define SYMBOL_TABLE_H
 #include <stdbool.h>
 
+#define MAX_NUM_SYMBOLS 100
+
 // Declare SymbolTable as an opaque type
 typedef struct SymbolTable SymbolTable;
 

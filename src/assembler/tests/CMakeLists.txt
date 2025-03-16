@@ -6,7 +6,6 @@ set(TEST_SOURCES
         test_assembler.c
         test_code.c
         test_parser.c
-        test_line_processor.c
         test_token.c
         test_token_table.c
         test_symbol_table.c
