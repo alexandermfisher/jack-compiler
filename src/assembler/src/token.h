@@ -77,8 +77,8 @@ typedef enum {
 
 // Union to store only necessary values
 typedef union {
-    int integer_value;    // Stores an integer literal (e.g., @10)
-    char *symbol_value;   // Stores a symbol (e.g., LOOP, count, var)
+    int integer;    // Stores an integer literal (e.g., @10)
+    char *symbol;   // Stores a symbol (e.g., LOOP, count, var)
 } TokenValue;
 
 

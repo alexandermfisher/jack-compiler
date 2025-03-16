@@ -3,13 +3,14 @@ project(assembler C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+add_definitions(-D_GNU_SOURCE)
 
 
 # Create the assembler static library
 add_library(assembler STATIC
         src/assembler.c
         src/code-generator.c
-        src/line_processor.c
+        src/lexer.c
         src/parser.c
         src/token.c
         src/token_table.c
