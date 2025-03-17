@@ -7,10 +7,12 @@ A fully-fledged compiler would typically wrap everything into a single tool that
 
 TODO:
 - main:
+  add optional paramater for toggling tokens.lex
   function briefs
   test header functions 
   integration tests
   readme
+- 
 
 
 

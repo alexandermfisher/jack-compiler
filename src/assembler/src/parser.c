@@ -51,17 +51,6 @@ bool advance(Parser *parser) {
         tokens[token_count++] = token_table_next(parser->token_table);
     } while (!tokens[token_count - 1] || tokens[token_count - 1]->type != NEWLINE);
 
-
-    // static int instruction_count = 1;
-    // printf("Instruction %d:\n", instruction_count);
-    // for (int i = 0; i < token_count; i++) {
-    //     char *token_str = token_to_str(tokens[i]);
-    //     printf("\t\t%s\n", token_str);
-    //     free(token_str);
-    // }
-    // printf("\n");
-    // instruction_count++;
-
     // Parse L-instruction:
     if (parse_l_instruction(parser, tokens)) {
         print_l_instruction(parser->instruction);
