@@ -1,14 +1,14 @@
 #include "assembler.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include "lexer.h"
 #include "parser.h"
 #include "symbol_table.h"
 #include "token_table.h"
 #include "code_generator.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 
-int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
+int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack, const bool print_tokens) {
     if (!source_asm || !target_hack || !source_filepath) return 1;
 
     int return_status = 0;
@@ -32,14 +32,6 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
         goto cleanup;
     }
 
-    // Open file for token.lex
-    token_lex_file = fopen("tokens.lex", "w");
-    if (!token_lex_file) {
-        perror("Error: Failed to open 'tokens.lex'");
-        return_status = 1;
-        goto cleanup;
-    }
-
     // First Pass - tokenise line by line and populate symbol table with labels
     char *line = NULL;
     size_t len = 0;
@@ -59,6 +51,7 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
         }
         line_num++;
     }
+    if (line) free(line);
     token_table_reset(token_table);
 
     // Initialise Parser
@@ -89,10 +82,19 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack) {
         fprintf(target_hack, "%s\n", binary_instruction);
     }
 
+
     cleanup:
-    if (token_lex_file) {
-        token_table_write_to_file(token_lex_file, token_table);
-        fclose(token_lex_file);
+    // Print token table to file if requested
+    if (print_tokens) {
+        // Open file for token.lex
+        token_lex_file = fopen("tokens.lex", "w");
+        if (!token_lex_file) {
+            perror("Error: Failed to open 'tokens.lex'");
+            return_status = 1;
+        } else {
+            token_table_write_to_file(token_lex_file, token_table);
+            fclose(token_lex_file);
+        }
     }
     if (parser) parser_free(parser);
     token_table_free(token_table);

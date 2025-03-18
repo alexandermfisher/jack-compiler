@@ -35,17 +35,21 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include <string.h>
+
 #include "utils.h"
 
 #define EXT_ASM ".asm"
 #define EXT_HACK ".hack"
 
 
+
 int main(const int argc, char *argv[]) {
     // Parse arguments
     char *source_file = NULL;
     char *target_file = NULL;
-    parse_arguments(argc, argv, &source_file, &target_file);
+    bool print_tokens = false;
+    parse_arguments(argc, argv, &source_file, &target_file, &print_tokens);
 
     // Validate source file extension
     if (!has_extension(source_file, EXT_ASM)) {
@@ -100,7 +104,7 @@ int main(const int argc, char *argv[]) {
     }
 
     // Run the assembler
-    run_assembler(source_file_ptr, source_file, target_file_ptr);
+    run_assembler(source_file_ptr, source_file, target_file_ptr, print_tokens);
 
     // Close files after processing
     fclose(source_file_ptr);

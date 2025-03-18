@@ -14,8 +14,9 @@
  * (null-terminated) is stored in the provided output buffer.
  *
  * @param instruction Pointer to the parsed instruction structure.
- * @param output A character buffer (at least 17 bytes) to store the binary representation.
+ * @param binary_output A character buffer to store the binary representation.
  */
-void generate_binary(const Instruction *instruction, char output[17]);
+
+void generate_binary(const Instruction *instruction, char *binary_output);
 
 #endif // CODE_GENERATOR_H

@@ -53,18 +53,18 @@ bool advance(Parser *parser) {
 
     // Parse L-instruction:
     if (parse_l_instruction(parser, tokens)) {
-        print_l_instruction(parser->instruction);
+        //print_l_instruction(parser->instruction);
         return true;
     }
 
     // Parse A-instruction:
     if (parse_a_instruction(parser, tokens)) {
-        print_a_instruction(parser->instruction);
+        //print_a_instruction(parser->instruction);
         return true;
     }
 
     if (parse_c_instruction(parser, tokens)) {
-        print_c_instruction(parser->instruction);
+        //print_c_instruction(parser->instruction);
         return true;
     }
 

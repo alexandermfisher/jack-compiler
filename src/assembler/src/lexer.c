@@ -252,9 +252,9 @@ ProcessStatus lex_a_instruction(char *line, TokenTable *token_table) {
             free(symbol);
             return PROCESS_ERROR;
         }
+        free(symbol);
         if (!token_table_add(token_table, symbol_token)) {
             free_token(symbol_token);
-            free(symbol);
             return PROCESS_ERROR;
         }
     }
