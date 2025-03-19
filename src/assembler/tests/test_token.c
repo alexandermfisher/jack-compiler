@@ -70,16 +70,5 @@ void test_create_token(void) {
     assert(unexpected_newline->value.symbol == NULL);
     free_token(unexpected_newline);
 
-    // Test NULL input for required values (should return NULL)
-    // assert(create_token(INTEGER_LITERAL, NULL) == NULL);
-    // assert(create_token(KEYWORD, NULL) == NULL);
-    // assert(create_token(OPERATOR, NULL) == NULL);
-    // assert(create_token(SEPARATOR, NULL) == NULL);
-
-    // // Edge case: Passing an unrecognized token type
-    // assert(create_token(9999) == NULL);  // Assuming 9999 is invalid
-
     printf("\t✅ test_create_token passed!\n");
 }
-
-

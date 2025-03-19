@@ -6,29 +6,34 @@
  *
  * @details
  * The assembler translates Hack Assembly (`.asm`) files into Hack Machine Code (`.hack`).
- * It processes command-line arguments to specify the source file and an optional target file.
+ * It processes command-line arguments to specify the source file, an optional target file,
+ * and an optional flag to print tokens during processing.
  *
  * **Usage:**
- *   hackasm source.asm                // Reads source.asm, writes to source.hack
- *   hackasm source.asm -o target.hack // Writes to target.hack, reads source.asm
+ *   hackasm source.asm                   // Reads source.asm, writes to source.hack
+ *   hackasm source.asm -o target.hack    // Writes to target.hack, reads source.asm
+ *   hackasm source.asm -t                // Prints tokens during processing
+ *   hackasm -o output.hack -t source.asm // Prints tokens and writes to output.hack
  *
  * **Command-line arguments:**
  *   - `source.asm` (required): The Hack assembly source file.
- *   - `-o target` (optional): Specify the target filename. If omitted, `.hack` is added to the source filename.
- *
- * The order of arguments doesn't matter for the source and target filenames as long as:
- *   - The `-o` option, if provided, is followed by the target filename.
- *   - The source file must be provided at the end, unless the `-o` option is used first.
+ *   - `-o target` or `--output target` (optional): Specify the target output filename.
+ *     If omitted, `.hack` is added to the source filename.
+ *   - `-t` or `--tokens` (optional): Enable printing of tokens during processing.
+ *   - `--`: Stop argument parsing; all following arguments are positional.
  *
  * **Behavior:**
- *   - The program generates the output file from the source file, ensuring the proper extensions.
- *   - Errors are reported for invalid filenames, missing source files, and incorrect usage.
+ *   - Generates the output file from the source file with proper extensions.
+ *   - Reports errors for invalid filenames, missing source files, or incorrect usage.
+ *   - Optionally prints tokens if the `-t` or `--tokens` flag is provided.
  *
  * **Examples:**
- *   hackasm add.asm                   → Generates `add.hack`
- *   hackasm -o my_output.hack add.asm → Generates `my_output.hack`
- *   hackasm loop.asm -o custom.bin    → Generates `custom.bin`
+ *   hackasm add.asm                          → Generates `add.hack`
+ *   hackasm -o my_output.hack add.asm        → Generates `my_output.hack`
+ *   hackasm loop.asm -o custom.bin -t        → Generates `custom.bin` and prints tokens
+ *   hackasm -t -o result.hack program.asm    → Generates `result.hack` and prints tokens
  */
+
 #include <assembler.h>
 #include <file_utils.h>
 #include <stdio.h>
@@ -36,12 +41,10 @@
 #include <unistd.h>
 #include <limits.h>
 #include <string.h>
-
 #include "utils.h"
 
 #define EXT_ASM ".asm"
 #define EXT_HACK ".hack"
-
 
 
 int main(const int argc, char *argv[]) {
@@ -112,7 +115,3 @@ int main(const int argc, char *argv[]) {
 
     return EXIT_SUCCESS;
 }
-
-
-
-

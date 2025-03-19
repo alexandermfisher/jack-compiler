@@ -57,7 +57,7 @@ ProcessStatus preprocess_line(char *line, char **processed_line, const ssize_t r
     if (!line || read <= 0) return PROCESS_ERROR;
 
     // Allocate a buffer with at most 'read' size (worst case: no spaces removed)
-    char *buffer = calloc(read + 1, sizeof(char)); // +1 for null terminator
+    char *buffer = calloc(read + 2, sizeof(char)); // +1 for null terminator
     if (!buffer) {
         perror("calloc failed");
         return PROCESS_ERROR;

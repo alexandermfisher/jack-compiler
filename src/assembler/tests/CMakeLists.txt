@@ -3,8 +3,7 @@ project(assembler_tests C)
 
 # List of test source files
 set(TEST_SOURCES
-        test_assembler.c
-        test_code.c
+        test_code_generator.c
         test_parser.c
         test_token.c
         test_token_table.c

@@ -1,6 +1,7 @@
 #include "code_generator.h"
 #include <stdio.h>
 #include <string.h>
+#include "token_table.h"
 
 const char* encode_comp(int comp);
 const char* encode_dest(int dest);

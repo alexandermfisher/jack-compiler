@@ -1,8 +1,6 @@
 #ifndef INSTRUCTION_H
 #define INSTRUCTION_H
 
-#include "token.h"  // Use existing token enums instead of redefining
-
 // Enum for instruction types
 typedef enum {
     A_INSTRUCTION_SYMBOL,  // @LABEL

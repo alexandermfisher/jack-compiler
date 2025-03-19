@@ -37,6 +37,4 @@ typedef enum {
 ProcessStatus lex_line(char *line, ssize_t read, TokenTable *token_table, SymbolTable *symbol_table, int *rom_address);
 
 
-
-
 #endif //LEXER_H

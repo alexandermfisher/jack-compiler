@@ -90,14 +90,28 @@ typedef struct {
     TokenValue value;  // Only used for TOKEN_SYMBOL and TOKEN_INTEGER
 } Token;
 
-
-// Token *create_token(TokenType type, void *value);
+/**
+ * Creates a new Token instance with the specified type and optional value.
+ *
+ * @param type The TokenType representing the type of token to create.
+ * @param ...  Optional value(s) depending on token type (e.g., integer for TOKEN_INTEGER or string for TOKEN_SYMBOL).
+ * @return Pointer to the newly created Token. Caller is responsible for freeing it using free_token().
+ */
 Token *create_token(TokenType type, ...);
 
-
+/**
+ * Frees the memory associated with a Token instance, including any dynamically allocated value.
+ *
+ * @param token Pointer to the Token to free.
+ */
 void free_token(Token *token);
 
-
+/**
+ * Converts a Token into a human-readable string representation.
+ *
+ * @param token Pointer to the Token to stringify.
+ * @return Dynamically allocated string representing the token (caller is responsible for freeing the returned string).
+ */
 char *token_to_str(const Token *token);
 
 #endif //TOKEN_H

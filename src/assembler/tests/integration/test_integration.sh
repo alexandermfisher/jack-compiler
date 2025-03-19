@@ -51,7 +51,7 @@ for test_case in "$TEST_DIR"/*; do
               valgrind --leak-check=full --error-exitcode=99 "$ASSEMBLER_EXEC" "$asm_file" -o "$asm_output" &> "$valgrind_log"
               assembler_status=$?
               if [[ $assembler_status -eq 99 ]]; then
-                echo "❌ Valgrind detected memory errors:"
+                echo "      ❌ Valgrind detected memory errors:"
                 cat "$valgrind_log"
               fi
               rm "$valgrind_log"
@@ -61,23 +61,23 @@ for test_case in "$TEST_DIR"/*; do
       fi
 
       if [[ $assembler_status -eq 99 ]]; then
-        echo "❌ Valgrind reported memory issues!"
+        echo "      ❌ Valgrind reported memory issues!"
         continue
       elif [[ $assembler_status -ne 0 ]]; then
-        echo "❌ Assembler failed with exit code $assembler_status"
+        echo "      ❌ Assembler failed with exit code $assembler_status"
         continue
       fi
 
       if [[ ! -f "$expected_output" ]]; then
-        echo "❌ Expected output missing: $expected_output"
+        echo "      ❌ Expected output missing: $expected_output"
         continue
       fi
 
       echo "==> Running diff: diff $asm_output $expected_output"
       if diff "$asm_output" "$expected_output" > /dev/null; then
-        echo "✅ Test passed for $asm_base"
+        echo "      ✅ Test passed for $asm_base"
       else
-        echo "❌ Test failed for $asm_base"
+        echo "      ❌ Test failed for $asm_base"
         diff "$asm_output" "$expected_output"
       fi
     done
