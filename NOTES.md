@@ -5,16 +5,6 @@ A fully-fledged compiler would typically wrap everything into a single tool that
 2.	Unified Compiler: A single CLI tool (jackcc) that detects input type and runs the required passes internally.
 
 
-TODO:
-- main:
-  function briefs
-  test header functions 
-  integration tests
-  readme
-- maybe generalise token table using opaque token struct
-
-
-
 
 
 
