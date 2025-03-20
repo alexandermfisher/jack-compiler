@@ -5,8 +5,15 @@ A fully-fledged compiler would typically wrap everything into a single tool that
 2.	Unified Compiler: A single CLI tool (jackcc) that detects input type and runs the required passes internally.
 
 
-
-
+<command> ::= <arithmetic> | <memory> | <program_flow> | <function_call>
+<arithmetic> ::= "add" | "sub" | "neg" | "eq" | "gt" | "lt" | "and" | "or" | "not"
+<memory> ::= ("push" | "pop") <segment> <index>
+<segment> ::= "argument" | "local" | "static" | "constant" | "this" | "that" | "pointer" | "temp"
+<program_flow> ::= "label" <label> | "goto" <label> | "if-goto" <label>
+<function_call> ::= "function" <function_name> <nVars> | "call" <function_name> <nArgs> | "return"
+<index> ::= integer (0 or positive)
+<function_name> ::= (alphanumeric with . or _ allowed)
+<label> ::= (alphanumeric with . or _ allowed)
 
 
 

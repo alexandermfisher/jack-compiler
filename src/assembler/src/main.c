@@ -41,11 +41,11 @@
 #include <unistd.h>
 #include <limits.h>
 #include <string.h>
-#include "utils.h"
 
 #define EXT_ASM ".asm"
 #define EXT_HACK ".hack"
 
+void parse_arguments(int argc, char *argv[], char **source_file, char **target_file, bool *print_tokens);
 
 int main(const int argc, char *argv[]) {
     // Parse arguments
@@ -114,4 +114,72 @@ int main(const int argc, char *argv[]) {
     fclose(target_file_ptr);
 
     return EXIT_SUCCESS;
+}
+
+/**
+ * @brief Parses command-line arguments for the hackasm assembler.
+ *
+ * This function processes the command-line arguments to determine the source
+ * assembly file, optional output file, and optional flags such as token printing.
+ *
+ * Supported options:
+ *   -o / --output <output_file>    Specify the output file name.
+ *   -t / --tokens                  Enable printing of tokens during processing.
+ *   --                             Stop option parsing; remaining arguments are treated as positional.
+ *
+ * At minimum, a source file must be specified. The function will exit with
+ * EXIT_FAILURE if required arguments are missing, duplicated options are provided,
+ * or unrecognized arguments are encountered.
+ *
+ * @param argc          The argument count.
+ * @param argv          The argument vector (array of strings).
+ * @param source_file   Pointer to a char* where the source file name will be stored.
+ * @param target_file   Pointer to a char* where the target file name (if any) will be stored.
+ * @param print_tokens  Pointer to a bool that will be set true if token printing is enabled.
+ */
+void parse_arguments(const int argc, char *argv[], char **source_file, char **target_file, bool *print_tokens) {
+    int i = 1;
+    bool end_of_options = false;
+
+    while (i < argc) {
+        if (!end_of_options && strcmp(argv[i], "--") == 0) {
+            // End of options, treat all following arguments as positional
+            end_of_options = true;
+            i++;
+            continue;
+        }
+
+        if (!end_of_options && (strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0)) {
+            // Optional Argument: -o <target_file>
+            if (i + 1 < argc) {
+                if (*target_file != NULL) {
+                    fprintf(stderr, "Error: Multiple -o options are not allowed.\n");
+                    fprintf(stderr, "Usage: %s [-o output.hack] [-t|--tokens] source.asm\n", argv[0]);
+                    exit(EXIT_FAILURE);
+                }
+                *target_file = argv[++i];
+            } else {
+                fprintf(stderr, "Error: -o requires a target file.\n");
+                fprintf(stderr, "Usage: %s [-o output.hack] [-t|--tokens] source.asm\n", argv[0]);
+                exit(EXIT_FAILURE);
+            }
+        } else if (!end_of_options && (strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "--tokens") == 0)) {
+            // Toggle printing of tokens
+            *print_tokens = true;
+        } else if (*source_file == NULL) {
+            // Positional argument: <source_file>
+            *source_file = argv[i];
+        } else {
+            fprintf(stderr, "Error: Unrecognized argument '%s'.\n", argv[i]);
+            fprintf(stderr, "Usage: %s [-o output.hack] [-t|--tokens] source.asm\n", argv[0]);
+            exit(EXIT_FAILURE);
+        }
+        i++;
+    }
+
+    if (*source_file == NULL) {
+        fprintf(stderr, "Error: Source file is required.\n");
+        fprintf(stderr, "Usage: %s [-o output.hack] [-t|--tokens] source.asm\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
 }

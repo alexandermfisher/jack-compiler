@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BUILD_TYPE="debug"
-TEST_NAMES=("token" "token_table" "symbol_table" "parser" "code_generator" "utils")
+TEST_NAMES=("token" "token_table" "symbol_table" "parser" "code_generator")
 
 while getopts "b:" opt; do
   case ${opt} in

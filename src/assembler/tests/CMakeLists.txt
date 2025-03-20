@@ -8,7 +8,6 @@ set(TEST_SOURCES
         test_token.c
         test_token_table.c
         test_symbol_table.c
-        test_utils.c
 )
 
 # Iterate over each test file and create an executable for it

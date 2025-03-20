@@ -15,19 +15,17 @@ add_library(assembler STATIC
         src/token.c
         src/token_table.c
         src/symbol_table.c
-        src/utils.c
 )
 # Ensure assembler can access its own headers
 target_include_directories(assembler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-# Link common library privately (bundled inside assembler, not exposed)
-target_link_libraries(assembler PRIVATE common)
+# Link common library publicly
+target_link_libraries(assembler PUBLIC common)
 
 
 # Define the hackasm executable
 add_executable(hackasm src/main.c)
-# Link hackasm to assembler (common is handled internally)
-target_link_libraries(hackasm PRIVATE assembler common)
-# Ensure hackasm has access to assembler headers
-target_include_directories(hackasm PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(hackasm PRIVATE assembler)
+
+
 # Add the tests directory
 add_subdirectory(tests)
