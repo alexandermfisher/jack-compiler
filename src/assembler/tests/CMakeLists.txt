@@ -6,7 +6,6 @@ set(TEST_SOURCES
         test_code_generator.c
         test_parser.c
         test_token.c
-        test_token_table.c
         test_symbol_table.c
 )
 

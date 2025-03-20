@@ -13,7 +13,6 @@ add_library(assembler STATIC
         src/parser.c
         src/lexer.c
         src/token.c
-        src/token_table.c
         src/symbol_table.c
 )
 # Ensure assembler can access its own headers

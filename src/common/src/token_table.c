@@ -1,35 +1,37 @@
-//
 // Created by Alexander Fisher on 09/03/2025.
-//
 
 #include "token_table.h"
 #include <stdlib.h>
 
-// Internal struct definition (hidden from the user)
-struct TokenTable {
-    struct TokenNode *head;
-    struct TokenNode *tail;
-    struct TokenNode *current;
-};
-
-// Internal node structure (hidden from the user)
+// Internal node structure (hidden from user)
 typedef struct TokenNode {
-    Token *token;
+    void *token;
     struct TokenNode *next;
 } TokenNode;
 
+// Internal struct definition (hidden from user)
+struct TokenTable {
+    TokenNode *head;
+    TokenNode *tail;
+    TokenNode *current;
 
-TokenTable *token_table_create(void) {
+    TokenFreeFunc free_func;
+    TokenToStr token_to_str;
+};
+
+TokenTable *token_table_create(const TokenFreeFunc free_func, const TokenToStr token_to_str) {
     TokenTable *table = malloc(sizeof(TokenTable));
     if (!table) {
         perror("Failed to allocate TokenTable");
         return NULL;
     }
     table->head = table->tail = table->current = NULL;
+    table->free_func = free_func;
+    table->token_to_str = token_to_str;
     return table;
 }
 
-bool token_table_add(TokenTable *table, Token *token) {
+bool token_table_add(TokenTable *table, void *token) {
     if (!table || !token) return false;
 
     TokenNode *new_node = malloc(sizeof(TokenNode));
@@ -51,19 +53,17 @@ bool token_table_add(TokenTable *table, Token *token) {
     return true;
 }
 
-Token *token_table_next(TokenTable *table) {
+void *token_table_next(TokenTable *table) {
     if (!table || !table->current) return NULL;
 
-    Token *token = table->current->token;
+    void *token = table->current->token;
     table->current = table->current->next;
     return token;
 }
 
-Token *token_table_peek(TokenTable *table) {
+void *token_table_peek(TokenTable *table) {
     if (!table || !table->current) return NULL;
-
-    Token *token = table->current->token;
-    return token;
+    return table->current->token;
 }
 
 void token_table_reset(TokenTable *table) {
@@ -76,7 +76,9 @@ void token_table_free(TokenTable *table) {
     TokenNode *current = table->head;
     while (current) {
         TokenNode *next = current->next;
-        free_token(current->token);
+        if (table->free_func) {
+            table->free_func(current->token);  // Use user-supplied free function
+        }
         free(current);
         current = next;
     }
@@ -85,13 +87,13 @@ void token_table_free(TokenTable *table) {
 }
 
 void token_table_write_to_file(FILE *file, TokenTable *table) {
-    if (!file || !table) return;
+    if (!file || !table || !table->token_to_str) return;
 
     token_table_reset(table);
 
-    Token *token;
+    void *token;
     while ((token = token_table_next(table)) != NULL) {
-        char *token_str = token_to_str(token);
+        char *token_str = table->token_to_str(token);
         fprintf(file, "%s\n", token_str);
         free(token_str);
     }

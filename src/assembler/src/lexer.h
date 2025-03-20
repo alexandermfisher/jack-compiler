@@ -5,8 +5,9 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "token_table.h"
+
 #include "symbol_table.h"
+#include <token_table.h>
 
 typedef enum {
     PROCESS_SUCCESS,   // Successfully processed a valid line

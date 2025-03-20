@@ -4,6 +4,7 @@ project(common C)
 # Create the common static library
 add_library(common STATIC
         src/file_utils.c
+        src/token_table.c
 )
 
 # Ensure common provides its headers to any dependent target

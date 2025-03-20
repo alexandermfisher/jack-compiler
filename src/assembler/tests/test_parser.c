@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <parser.h>
 #include <symbol_table.h>
+#include <token.h>
 #include <token_table.h>
 #include <lexer.h>
 #include <instruction.h>
@@ -20,7 +21,8 @@ int main(void) {
 void test_parser(void) {
     SymbolTable *symbol_table = symbol_table_create();
     int rom_address = 0;
-    TokenTable *table = token_table_create();
+    TokenTable *table = token_table_create((TokenFreeFunc)free_token, (TokenToStr)token_to_str);
+
     Parser *parser = parser_create(table, symbol_table);
 
     // === Input program with all 3 instruction types ===

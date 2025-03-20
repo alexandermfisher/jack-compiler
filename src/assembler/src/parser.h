@@ -3,8 +3,8 @@
 
 #include <stdbool.h>
 #include "symbol_table.h"
-#include "token_table.h"
 #include "instruction.h"
+#include <token_table.h>
 
 /**
  * Parser structure encapsulating the token table, symbol table, and current instruction.

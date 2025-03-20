@@ -13,7 +13,7 @@ done
 shift $((OPTIND - 1))  # Remove processed options
 
 # List of common tests to run (easily editable)
-COMMON_TESTS=("file_utils")  # Add common test names here
+COMMON_TESTS=("file_utils" "token_table")  # Add common test names here
 
 # Ensure build directory exists
 if [ ! -d "build/$BUILD_TYPE" ]; then

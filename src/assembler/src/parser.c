@@ -1,5 +1,6 @@
 
 #include "parser.h"
+#include "token.h"
 #include <stdlib.h>
 
 #define MAX_TOKENS_PER_INSTRUCTION 10

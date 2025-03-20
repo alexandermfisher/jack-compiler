@@ -2,8 +2,9 @@
 #include "lexer.h"
 #include "parser.h"
 #include "symbol_table.h"
-#include "token_table.h"
 #include "code_generator.h"
+#include "token.h"
+#include <token_table.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -18,7 +19,7 @@ int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack, co
     Parser *parser = NULL;
 
     // Create and initialise token table, and symbol table
-    token_table = token_table_create();
+    token_table = token_table_create((TokenFreeFunc)free_token, (TokenToStr)token_to_str);
     if (!token_table) return 1;
     symbol_table = symbol_table_create();
     if (!symbol_table) {
