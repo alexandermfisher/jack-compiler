@@ -37,15 +37,18 @@ void logger_free(Logger *logger);
 void logger_set_global(Logger *logger);
 Logger *logger_get_global(void);
 
-// Helper macro to automatically inject __FILE__ and __LINE__
-#define LOG(logger, level, ...) \
-    logger_log(logger, level, __FILE__, __LINE__, __VA_ARGS__)
-
-// Global log macro - use anywhere after logger_set_global()
+// General user log - no source file or line shown
 #define GLOG(level, ...) \
     do { \
         if (logger_get_global()) \
-            logger_log(logger_get_global(), level, __FILE__, __LINE__, __VA_ARGS__); \
+            logger_log(logger_get_global(), level, NULL, 0, __VA_ARGS__); \
+    } while (0)
+
+// User error log pointing to their source file and line number
+#define GUSERLOG(level, user_file, user_line, ...) \
+    do { \
+        if (logger_get_global()) \
+            logger_log(logger_get_global(), level, user_file, user_line, __VA_ARGS__); \
     } while (0)
 
 #endif // LOGGER_H

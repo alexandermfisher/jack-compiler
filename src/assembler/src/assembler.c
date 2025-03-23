@@ -4,6 +4,7 @@
 #include "symbol_table.h"
 #include "code_generator.h"
 #include "token.h"
+#include <logger.h>
 #include <token_table.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,11 +14,9 @@
 // Internal full definition of Assembler
 struct Assembler {
     AssemblerConfig config;
-    // Add internal state here like:
     TokenTable *token_table;
     SymbolTable *symbol_table;
     Parser *parser;
-    // Any other internal state
 };
 
 Assembler *assembler_create(const AssemblerConfig *config) {
@@ -26,11 +25,6 @@ Assembler *assembler_create(const AssemblerConfig *config) {
     // Validate required fields (file pointers and file paths)
     if (!config->source_asm || !config->target_hack ||
         !config->source_filepath || !config->target_filepath) {
-        return NULL;
-        }
-
-    // Validate that file pointers are accessible (optional read/write test)
-    if (ferror(config->source_asm) || ferror(config->target_hack)) {
         return NULL;
     }
 
@@ -41,9 +35,7 @@ Assembler *assembler_create(const AssemblerConfig *config) {
     assembler->config.source_filepath = config->source_filepath;
     assembler->config.target_hack = config->target_hack;
     assembler->config.target_filepath = config->target_filepath;
-    assembler->config.token_output_filepath = config->token_output_filepath;
-    assembler->config.print_tokens = config->print_tokens ? true : false;
-    assembler->config.logger = config->logger ? config->logger : NULL;
+    assembler->config.token_output = config->token_output;
 
     // Create TokenTable
     assembler->token_table = token_table_create((TokenFreeFunc)free_token, (TokenToStr)token_to_str);
@@ -80,98 +72,90 @@ Assembler *assembler_create(const AssemblerConfig *config) {
     return assembler;
 }
 
+void assembler_free(Assembler *assembler) {
+    if (!assembler) return;
 
-int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack, const bool print_tokens) {
-    if (!source_asm || !target_hack || !source_filepath) return 1;
+    // Free the parser if it was created
+    if (assembler->parser) {
+        parser_free(assembler->parser);
+    }
+
+    // Free the token table
+    if (assembler->token_table) {
+        token_table_free(assembler->token_table);
+    }
+
+    // Free the symbol table
+    if (assembler->symbol_table) {
+        symbol_table_free(assembler->symbol_table);
+    }
+
+    // Finally, free the assembler struct itself
+    free(assembler);
+}
+
+int assembler_assemble(Assembler *assembler) {
+    if (!assembler) return 1;
 
     int return_status = 0;
-    FILE *token_lex_file = NULL;
-    TokenTable *token_table = NULL;
-    SymbolTable *symbol_table = NULL;
-    Parser *parser = NULL;
 
-    // Create and initialise token table, and symbol table
-    token_table = token_table_create((TokenFreeFunc)free_token, (TokenToStr)token_to_str);
-    if (!token_table) return 1;
-    symbol_table = symbol_table_create();
-    if (!symbol_table) {
-        token_table_free(token_table);
-        return 1;
-    }
-
-    // Load predefined symbols into symbol table
-    if (!load_predefined_symbols(symbol_table)) {
-        return_status = 1;
-        goto cleanup;
-    }
-
-    // First Pass - tokenise line by line and populate symbol table with labels
+    // First Pass - Tokenize lines and populate symbol table with labels
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
     int rom_address = 0;
     int line_num = 1;
-    while ((read=getline(&line, &len, source_asm)) != -1) {
-        const ProcessStatus status = lex_line(line, read, token_table, symbol_table, &rom_address);
+    while ((read = getline(&line, &len, assembler->config.source_asm)) != -1) {
+        const ProcessStatus status = lex_line(line, read, assembler->token_table,
+                                        assembler->symbol_table, &rom_address);
         if (status != PROCESS_SUCCESS) {
             if (status == PROCESS_INVALID) {
-                fprintf(stderr, "%s:%d: syntax error: unable to process line - %s\n",
-                    source_filepath, line_num, line);
+                GLOG(LOG_ERROR, "%s:%d: syntax error: unable to process line - %s",
+                     assembler->config.source_filepath, line_num, line);
+            } else if (status == PROCESS_ERROR) {
+                GLOG(LOG_ERROR, "%s:%d: internal error (memory/system failure) while processing line.",
+                     assembler->config.source_filepath, line_num);
             }
-            return_status = 1;
             free(line);
-            goto cleanup;
+            return_status = 1;
+            goto end;
         }
         line_num++;
     }
-    if (line) free(line);
-    token_table_reset(token_table);
-
-    // Initialise Parser
-    parser = parser_create(token_table, symbol_table);
-    if (!parser) {
-        return_status = 1;
-        goto cleanup;
-    }
+    free(line);
+    token_table_reset(assembler->token_table);
 
     // Second Pass - Code Generation
     int ram_address = 16;
-    while (parser_has_more_commands(parser)) {
-        if (!advance(parser)) break;
-        if (parser->instruction->type == L_INSTRUCTION) continue;
-        if (parser->instruction->type == A_INSTRUCTION_SYMBOL) {
-            if (!symbol_table_contains(symbol_table, parser->instruction->symbol)) {
-                symbol_table_add(symbol_table, parser->instruction->symbol, ram_address++);
+    while (parser_has_more_commands(assembler->parser)) {
+        if (!advance(assembler->parser)) break;
+        if (assembler->parser->instruction->type == L_INSTRUCTION) continue;
+        if (assembler->parser->instruction->type == A_INSTRUCTION_SYMBOL) {
+            const char *symbol = assembler->parser->instruction->symbol;
+            if (!symbol_table_contains(assembler->symbol_table, symbol)) {
+                if (!symbol_table_add(assembler->symbol_table, symbol, ram_address++)) {
+                    GLOG(LOG_ERROR, assembler->config.source_filepath, line_num,
+                        "Failed to add symbol '%s' to symbol table.", symbol);
+                    return_status = 1;
+                    goto end;
+                }
             }
-            parser->instruction->value = symbol_table_get_address(symbol_table, parser->instruction->symbol);
-            parser->instruction->type = A_INSTRUCTION_VALUE;
+            assembler->parser->instruction->value =
+                symbol_table_get_address(assembler->symbol_table, symbol);
+            assembler->parser->instruction->type = A_INSTRUCTION_VALUE;
         }
 
         // Generate binary instruction
         char binary_instruction[17] = {0};
-        generate_binary(parser->instruction, binary_instruction);
+        generate_binary(assembler->parser->instruction, binary_instruction);
 
-        // Write to the .hack file
-        fprintf(target_hack, "%s\n", binary_instruction);
+        // Write to the .hack output file
+        fprintf(assembler->config.target_hack, "%s\n", binary_instruction);
     }
 
-
-    cleanup:
-    // Print token table to file if requested
-    if (print_tokens) {
-        // Open file for token.lex
-        token_lex_file = fopen("tokens.lex", "w");
-        if (!token_lex_file) {
-            perror("Error: Failed to open 'tokens.lex'");
-            return_status = 1;
-        } else {
-            token_table_write_to_file(token_lex_file, token_table);
-            fclose(token_lex_file);
-        }
+    end:
+    if (assembler->config.token_output) {
+        token_table_write_to_file(assembler->config.token_output, assembler->token_table);
     }
-    if (parser) parser_free(parser);
-    token_table_free(token_table);
-    symbol_table_free(symbol_table);
-
-    return return_status;  // Return 0 on success, 1 on error
+    return return_status;  // 0 on success, 1 on failure
 }

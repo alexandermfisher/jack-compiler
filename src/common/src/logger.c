@@ -12,7 +12,7 @@ static const char *level_colors[] = {
     "\x1b[36m", // DEBUG - Cyan
     "\x1b[32m", // INFO  - Green
     "\x1b[33m", // WARN  - Yellow
-    "\x1b[31m"  // ERROR - Red
+    "\x1b[31m" // ERROR - Red
 };
 
 static const char *level_names[] = {"DEBUG", "INFO", "WARN", "ERROR"};
@@ -20,7 +20,7 @@ static const char *level_names[] = {"DEBUG", "INFO", "WARN", "ERROR"};
 // Global logger instance
 static Logger *global_logger = NULL;
 
-Logger *logger_create(const char *log_filepath, LogLevel level, bool use_colors) {
+Logger *logger_create(const char *log_filepath, const LogLevel level, const bool use_colors) {
     Logger *logger = calloc(1, sizeof(Logger));
     if (!logger) return NULL;
 
@@ -56,8 +56,15 @@ void logger_log(Logger *logger, LogLevel level, const char *file, int line, cons
     // Color if enabled
     if (logger->use_colors) fprintf(logger->stream, "%s", level_colors[level]);
 
-    // Log format
-    fprintf(logger->stream, "[%s] %s [%s:%d]: ", time_buf, level_names[level], file, line);
+    // Log format start
+    fprintf(logger->stream, "[%s] %s", time_buf, level_names[level]);
+
+    // Conditionally print user file and line if provided
+    if (file && line > 0) {
+        fprintf(logger->stream, " [%s:%d]", file, line);
+    }
+
+    fprintf(logger->stream, ": ");
 
     // Formatted message
     va_list args;
@@ -71,7 +78,7 @@ void logger_log(Logger *logger, LogLevel level, const char *file, int line, cons
 
 void logger_dump(Logger *logger, FILE *target) {
     if (!logger || !logger->mem_buffer || !target) return;
-    fflush(logger->stream);  // Ensure all data is written to buffer
+    fflush(logger->stream); // Ensure all data is written to buffer
     fwrite(logger->mem_buffer, 1, logger->mem_size, target);
 }
 

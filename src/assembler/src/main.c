@@ -36,11 +36,13 @@
 
 #include <assembler.h>
 #include <file_utils.h>
+#include <logger.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
 #include <string.h>
+#include <sys/errno.h>
 
 #define EXT_ASM ".asm"
 #define EXT_HACK ".hack"
@@ -48,6 +50,7 @@
 void parse_arguments(int argc, char *argv[], char **source_file, char **target_file, bool *print_tokens);
 
 int main(const int argc, char *argv[]) {
+
     // Parse arguments
     char *source_file = NULL;
     char *target_file = NULL;
@@ -94,26 +97,73 @@ int main(const int argc, char *argv[]) {
     // Open source file for reading
     FILE *source_file_ptr = fopen(source_file, "r");
     if (!source_file_ptr) {
-        perror("Error opening source file");
+        fprintf(stderr, "Failed to open source file '%s': %s", source_file, strerror(errno));
         return EXIT_FAILURE;
     }
 
     // Open target file for writing (creates a new file if it doesn't exist)
     FILE *target_file_ptr = fopen(target_file, "w");
     if (!target_file_ptr) {
-        perror("Error opening target file");
+        fprintf(stderr, "Failed to open target file '%s': %s", target_file, strerror(errno));
         fclose(source_file_ptr);
         return EXIT_FAILURE;
     }
 
-    // Run the assembler
-    run_assembler(source_file_ptr, source_file, target_file_ptr, print_tokens);
+    // Open token.lex file output if required
+    FILE *token_output_ptr = NULL;
+    if (print_tokens) {
+        const char *token_filename = "tokens.lex";
+        token_output_ptr = fopen(token_filename, "w");
+        if (!token_output_ptr) {
+            fprintf(stderr, "Failed to open token output file '%s': %s", token_filename, strerror(errno));
+            fclose(source_file_ptr);
+            fclose(target_file_ptr);
+            return EXIT_FAILURE;
+        }
+    }
 
-    // Close files after processing
+    // Prepare assembler config
+    const AssemblerConfig config = {
+        .source_asm = source_file_ptr,
+        .target_hack = target_file_ptr,
+        .source_filepath = source_file,
+        .target_filepath = target_file,
+        .token_output = token_output_ptr,
+    };
+
+    // Create assembler
+    Assembler *assembler = assembler_create(&config);
+    if (!assembler) {
+        GLOG(LOG_ERROR, "Failed to initialise assembler.");
+        fclose(source_file_ptr);
+        fclose(target_file_ptr);
+        return EXIT_FAILURE;
+    }
+
+    // Initialize global logger
+    Logger *logger = logger_create(NULL, LOG_INFO, true);
+    if (!logger) {
+        fprintf(stderr, "Failed to initialize logger\n");
+        return EXIT_FAILURE;
+    }
+    logger_set_global(logger);
+
+    GLOG(LOG_INFO, "Hack Assembler started");
+
+    // Run assembler
+    const int status = assembler_assemble(assembler);
+
+    // Dump log contents to terminal if error occurred
+    if (status != 0) logger_dump(logger, stderr);
+
+    // Clean up
+    logger_free(logger);
+    assembler_free(assembler);
+    fclose(token_output_ptr);
     fclose(source_file_ptr);
     fclose(target_file_ptr);
 
-    return EXIT_SUCCESS;
+    return (status == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 /**

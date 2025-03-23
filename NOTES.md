@@ -4,12 +4,9 @@ A fully-fledged compiler would typically wrap everything into a single tool that
 1.	Separate Binaries: Each stage (jackc, vmtrans, hackasm) is its own executable. Users manually run them in sequence.
 2.	Unified Compiler: A single CLI tool (jackcc) that detects input type and runs the required passes internally.
 
-make clean api interface for assembler, innit it with config and file paths and token file path, and log file path
 
-assembler_init -> validates input files access, and sets config 
-assembler_assmeble -> initiates assembly
-assmebler_write_log(file stream or sdout or sdeer)
-defualt log file is tmp dir overiden by argument log path in init and can then  log on errors by caller/driver code 
+complete file list
+write vm interface 
 
 
 

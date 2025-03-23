@@ -1,4 +1,6 @@
 #include "symbol_table.h"
+
+#include <logger.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -20,10 +22,7 @@ struct SymbolTable {
 // Create a new symbol table
 SymbolTable *symbol_table_create(void) {
     SymbolTable *table = malloc(sizeof(SymbolTable));
-    if (!table) {
-        perror("Failed to allocate symbol table");
-        return NULL;
-    }
+    if (!table) return NULL;
     table->count = 0;
     return table;
 }
@@ -47,15 +46,13 @@ bool symbol_table_add(SymbolTable *table, const char *symbol, const int address)
 
     // Check if the table is full
     if (table->count >= MAX_NUM_SYMBOLS) {
-        fprintf(stderr, "Error: Maximum number of symbols (%d) reached. Cannot add symbol '%s'.\n",
-                MAX_NUM_SYMBOLS, symbol);
+        GLOG(LOG_ERROR, "Symbol table capacity exceeded (max %d symbols)", MAX_NUM_SYMBOLS);
         return false;
     }
 
     // Allocate and copy the symbol name
     table->entries[table->count].symbol = strdup(symbol);
     if (!table->entries[table->count].symbol) {
-        perror("Failed to allocate memory for symbol");
         return false;
     }
 
@@ -111,7 +108,6 @@ bool load_predefined_symbols(SymbolTable *table) {
     // Add all predefined symbols to the symbol table
     for (int i = 0; i < PREDEFINED_COUNT; i++) {
         if (!symbol_table_add(table, predefined_symbols[i].symbol, predefined_symbols[i].address)) {
-            fprintf(stderr, "Error: Failed to add predefined symbol: %s\n", predefined_symbols[i].symbol);
             return false;
         }
     }

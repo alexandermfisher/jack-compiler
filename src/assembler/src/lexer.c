@@ -4,6 +4,7 @@
 
 #include "lexer.h"
 #include "token.h"
+#include <logger.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -59,10 +60,7 @@ ProcessStatus preprocess_line(char *line, char **processed_line, const ssize_t r
 
     // Allocate a buffer with at most 'read' size (worst case: no spaces removed)
     char *buffer = calloc(read + 2, sizeof(char)); // +1 for null terminator
-    if (!buffer) {
-        perror("calloc failed");
-        return PROCESS_ERROR;
-    }
+    if (!buffer) return PROCESS_ERROR;
 
     // Find comment position
     const char *comment_start = strstr(line, "//");
@@ -115,7 +113,7 @@ ProcessStatus lex_label(char *line, TokenTable *token_table, SymbolTable *symbol
 
     // If it's a reserved keyword -> invalid
     if (is_keyword(symbol)) {
-        fprintf(stderr, "Invalid Symbol: '%s' is a reserved hack keyword\n", symbol);
+        GLOG(LOG_ERROR, "Invalid Symbol: '%s' is a reserved hack keyword", symbol);
         free(symbol);
         return PROCESS_INVALID;
     }
@@ -168,10 +166,6 @@ ProcessStatus lex_symbol(char **line, char **symbol) {
     const char *start = *line;
     const char *end = strpbrk(*line, ")\n");
 
-    // strchr(start, ')');   // Find ')'
-    // if (!end) end = strchr(start, '\n');    // If no ')', find newline as fallback
-
-
     if (!start || !end || end < start) {
         return PROCESS_INVALID; // No valid symbol found
     }
@@ -188,10 +182,7 @@ ProcessStatus lex_symbol(char **line, char **symbol) {
 
     // Allocate memory for the symbol
     char *label = malloc(len + 1);
-    if (!label) {
-        perror("malloc failed");
-        return PROCESS_ERROR;
-    }
+    if (!label) return PROCESS_ERROR;
 
     // Validate and copy character by character
     int i = 0;

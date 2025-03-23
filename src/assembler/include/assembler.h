@@ -1,20 +1,13 @@
 #ifndef ASSEMBLER_H
 #define ASSEMBLER_H
-
-#include <stdbool.h>
 #include <stdio.h>
-#include "logger.h"
 
 typedef struct {
     FILE *source_asm;
     const char *source_filepath;
-
     FILE *target_hack;
     const char *target_filepath;
-
-    const char *token_output_filepath;  // Optional, for dumping tokens
-    bool print_tokens;
-    Logger *logger;                     // Optional logger
+    FILE *token_output;
 } AssemblerConfig;
 
 // Forward declaration of the opaque Assembler type
@@ -40,6 +33,4 @@ int assembler_assemble(Assembler *assembler);
  */
 void assembler_free(Assembler *assembler);
 
-
 #endif // ASSEMBLER_H
-

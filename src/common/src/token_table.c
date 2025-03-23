@@ -22,7 +22,6 @@ struct TokenTable {
 TokenTable *token_table_create(const TokenFreeFunc free_func, const TokenToStr token_to_str) {
     TokenTable *table = malloc(sizeof(TokenTable));
     if (!table) {
-        perror("Failed to allocate TokenTable");
         return NULL;
     }
     table->head = table->tail = table->current = NULL;
@@ -36,7 +35,6 @@ bool token_table_add(TokenTable *table, void *token) {
 
     TokenNode *new_node = malloc(sizeof(TokenNode));
     if (!new_node) {
-        perror("Failed to allocate TokenNode");
         return false;
     }
 
