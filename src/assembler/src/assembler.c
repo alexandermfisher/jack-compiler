@@ -7,6 +7,78 @@
 #include <token_table.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+
+// Internal full definition of Assembler
+struct Assembler {
+    AssemblerConfig config;
+    // Add internal state here like:
+    TokenTable *token_table;
+    SymbolTable *symbol_table;
+    Parser *parser;
+    // Any other internal state
+};
+
+Assembler *assembler_create(const AssemblerConfig *config) {
+    if (!config) return NULL;
+
+    // Validate required fields (file pointers and file paths)
+    if (!config->source_asm || !config->target_hack ||
+        !config->source_filepath || !config->target_filepath) {
+        return NULL;
+        }
+
+    // Validate that file pointers are accessible (optional read/write test)
+    if (ferror(config->source_asm) || ferror(config->target_hack)) {
+        return NULL;
+    }
+
+    Assembler *assembler = calloc(1, sizeof(Assembler));
+    if (!assembler) return NULL;
+
+    assembler->config.source_asm = config->source_asm;
+    assembler->config.source_filepath = config->source_filepath;
+    assembler->config.target_hack = config->target_hack;
+    assembler->config.target_filepath = config->target_filepath;
+    assembler->config.token_output_filepath = config->token_output_filepath;
+    assembler->config.print_tokens = config->print_tokens ? true : false;
+    assembler->config.logger = config->logger ? config->logger : NULL;
+
+    // Create TokenTable
+    assembler->token_table = token_table_create((TokenFreeFunc)free_token, (TokenToStr)token_to_str);
+    if (!assembler->token_table) {
+        free(assembler);
+        return NULL;
+    }
+
+    // Create SymbolTable
+    assembler->symbol_table = symbol_table_create();
+    if (!assembler->symbol_table) {
+        token_table_free(assembler->token_table);
+        free(assembler);
+        return NULL;
+    }
+
+    // Load predefined symbols into symbol table
+    if (!load_predefined_symbols(assembler->symbol_table)) {
+        token_table_free(assembler->token_table);
+        symbol_table_free(assembler->symbol_table);
+        free(assembler);
+        return NULL;
+    }
+
+    // Create Parser:
+    assembler->parser = parser_create(assembler->token_table, assembler->symbol_table);
+    if (!assembler->parser) {
+        token_table_free(assembler->token_table);
+        symbol_table_free(assembler->symbol_table);
+        free(assembler);
+        return NULL;
+    }
+
+    return assembler;
+}
 
 
 int run_assembler(FILE *source_asm, char *source_filepath, FILE *target_hack, const bool print_tokens) {
