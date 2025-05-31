@@ -10,17 +10,13 @@ bool has_extension(const char *filepath, const char *expected_extension) {
 
     // Find the last '/' in the filepath to get the filename
     const char *filename = strrchr(filepath, '/');
-    if (filename) {
-        filename++;
-    } else {
-        filename = filepath;
-    }
+    filename = filename ? filename + 1 : filepath;
 
     // Find the last '.' to get the file extension
     const char *ext = strrchr(filename, '.');
     if (!ext) { return false; }
 
-    return strcmp(ext, expected_extension) == 0;
+    return strcasecmp(ext, expected_extension) == 0;
 }
 
 bool change_file_extension(char *filepath, const size_t max_len, const char *extension) {

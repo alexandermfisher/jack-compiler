@@ -3,6 +3,7 @@ project(common C)
 
 # Create the common static library
 add_library(common STATIC
+        src/file_list.c
         src/file_utils.c
         src/token_table.c
         src/logger.c
