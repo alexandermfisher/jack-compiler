@@ -8,6 +8,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(TEST_SOURCES
         test_file_utils.c
         test_token_table.c
+        test_file_list.c
 )
 
 foreach(test_file ${TEST_SOURCES})

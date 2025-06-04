@@ -32,7 +32,7 @@ typedef struct {
  *
  * @return Pointer to FileList or NULL on failure
  */
-FileList *file_list_new(void);
+FileList *file_list_create(void);
 
 /**
  * Adds matching files from a path (file or directory) to the FileList.
@@ -75,6 +75,16 @@ const char *file_list_current_basename(FileList *list);
  * @return const char* to source directory
  */
 const char *file_list_current_source(FileList *list);
+
+/**
+ * Checks if a file with the given name exists in the FileList.
+ * Comparison is case-sensitive and matches full base filename (e.g., "Sys.vm").
+ *
+ * @param list Pointer to FileList
+ * @param filename Name of the file to check (e.g., "Sys.vm")
+ * @return true if the file exists, false otherwise
+ */
+bool file_list_has_file(const FileList *list, const char *filename);
 
 /**
  * Resets the iteration index to the beginning of the list.
